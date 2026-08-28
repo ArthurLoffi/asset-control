@@ -12,5 +12,9 @@ func Routes(r *gin.Engine, employeeController *controller.EmployeeController) {
 	e := api.Group("/employee")
 	{
 		e.POST("", employeeController.CreateEmployeeController())
+		e.GET("/id", employeeController.FindByIDController())
+		e.GET("/name", employeeController.FindByNameController())
+		e.GET("", employeeController.GetAllEmployees())
+		e.PUT("", employeeController.UpdateEmployeeController())
 	}
 }

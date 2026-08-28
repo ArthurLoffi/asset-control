@@ -1,21 +1,17 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 
-	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-func NewMySQLConnection() (*sql.DB, error) {
+func NewMySQLConnection() (*gorm.DB, error) {
 	dsn := "root:root@tcp(localhost:3306)/asset_control?parseTime=true"
 
-	db, err := sql.Open("mysql", dsn)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
 		return nil, err
 	}
 
