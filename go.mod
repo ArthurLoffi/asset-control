@@ -2,7 +2,11 @@ module asset-control
 
 go 1.27.0
 
-require github.com/gin-gonic/gin v1.12.0
+require (
+	github.com/gin-gonic/gin v1.12.0
+	gorm.io/driver/mysql v1.6.0
+	gorm.io/gorm v1.31.2
+)
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
@@ -38,6 +42,4 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
-	gorm.io/driver/mysql v1.6.0 // indirect
-	gorm.io/gorm v1.31.2 // indirect
 )
