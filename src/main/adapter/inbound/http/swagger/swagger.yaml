@@ -46,6 +46,27 @@ definitions:
     - type
     - user
     type: object
+  dto.CreateMonitorDto:
+    properties:
+      asset_number:
+        type: integer
+      brand:
+        type: string
+      employee_id:
+        type: integer
+      has_monitor:
+        type: boolean
+      model:
+        type: string
+      monitor_condition:
+        type: string
+      serial_number:
+        type: string
+      situation:
+        type: string
+    required:
+    - model
+    type: object
   dto.CreatePhoneDto:
     properties:
       employee_id:
@@ -66,6 +87,27 @@ definitions:
     - imei
     - model
     - serial_number
+    type: object
+  dto.CreatePrinterDto:
+    properties:
+      asset_number:
+        type: integer
+      branch_id:
+        type: integer
+      departments_id:
+        type: integer
+      ip:
+        type: string
+      machine_condition:
+        type: string
+      model:
+        type: string
+    required:
+    - asset_number
+    - branch_id
+    - departments_id
+    - ip
+    - model
     type: object
 externalDocs:
   description: OpenAPI
@@ -400,6 +442,166 @@ paths:
       summary: Busca máquina por ID
       tags:
       - machines
+  /monitors:
+    get:
+      description: Retorna todos os monitores cadastrados.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Monitores encontrados com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista todos os monitores
+      tags:
+      - monitors
+    post:
+      consumes:
+      - application/json
+      description: Cria um novo monitor a partir dos dados enviados no corpo da requisição.
+      parameters:
+      - description: Dados do monitor
+        in: body
+        name: monitor
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateMonitorDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Monitor criado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um novo monitor
+      tags:
+      - monitors
+    put:
+      consumes:
+      - application/json
+      description: Atualiza os dados de um monitor existente através do ID.
+      parameters:
+      - description: ID do monitor
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: Dados atualizados do monitor
+        in: body
+        name: monitor
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateMonitorDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Monitor atualizado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID inválido ou dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Monitor não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza um monitor
+      tags:
+      - monitors
+  /monitors/employee:
+    get:
+      description: Retorna todos os monitores associados ao ID de um funcionário.
+      parameters:
+      - description: ID do funcionário
+        format: int64
+        in: query
+        name: employee_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Monitores encontrados com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID do funcionário inválido ou não informado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Nenhum monitor encontrado para o funcionário
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca monitores por funcionário
+      tags:
+      - monitors
+  /monitors/id:
+    get:
+      description: Busca um monitor pelo ID informado como query parameter.
+      parameters:
+      - description: ID do monitor
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Monitor encontrado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID inválido ou não informado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Monitor não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca monitor por ID
+      tags:
+      - monitors
   /phones:
     get:
       description: Retorna todos os telefones cadastrados.
@@ -561,4 +763,132 @@ paths:
       summary: Busca telefone por ID
       tags:
       - phones
+  /printers:
+    get:
+      description: Retorna todas as impressoras cadastradas.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Impressoras encontradas com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista todas as impressoras
+      tags:
+      - printers
+    post:
+      consumes:
+      - application/json
+      description: Cria uma nova impressora a partir dos dados enviados no corpo da
+        requisição.
+      parameters:
+      - description: Dados da impressora
+        in: body
+        name: printer
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePrinterDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Impressora criada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria uma nova impressora
+      tags:
+      - printers
+    put:
+      consumes:
+      - application/json
+      description: Atualiza os dados de uma impressora existente através do ID.
+      parameters:
+      - description: ID da impressora
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: Dados atualizados da impressora
+        in: body
+        name: printer
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePrinterDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Impressora atualizada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID inválido ou dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Impressora não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza uma impressora
+      tags:
+      - printers
+  /printers/id:
+    get:
+      description: Busca uma impressora pelo ID informado como query parameter.
+      parameters:
+      - description: ID da impressora
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Impressora encontrada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID inválido ou não informado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Impressora não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca impressora por ID
+      tags:
+      - printers
 swagger: "2.0"
