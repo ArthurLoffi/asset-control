@@ -46,6 +46,27 @@ definitions:
     - type
     - user
     type: object
+  dto.CreatePhoneDto:
+    properties:
+      employee_id:
+        type: integer
+      equipament:
+        type: string
+      has_chip:
+        type: boolean
+      imei:
+        type: string
+      model:
+        type: string
+      serial_number:
+        type: string
+      situation:
+        type: string
+    required:
+    - imei
+    - model
+    - serial_number
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -379,4 +400,165 @@ paths:
       summary: Busca máquina por ID
       tags:
       - machines
+  /phones:
+    get:
+      description: Retorna todos os telefones cadastrados.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Telefones encontrados com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista todos os telefones
+      tags:
+      - phones
+    post:
+      consumes:
+      - application/json
+      description: Cria um novo telefone a partir dos dados enviados no corpo da requisição.
+      parameters:
+      - description: Dados do telefone
+        in: body
+        name: phone
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePhoneDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Telefone criado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um novo telefone
+      tags:
+      - phones
+    put:
+      consumes:
+      - application/json
+      description: Atualiza os dados de um telefone existente através do ID informado
+        como query parameter.
+      parameters:
+      - description: ID do telefone
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: Dados atualizados do telefone
+        in: body
+        name: phone
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePhoneDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Telefone atualizado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID ou dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Telefone não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza um telefone
+      tags:
+      - phones
+  /phones/employee_id:
+    get:
+      description: Retorna os telefones vinculados ao funcionário informado pelo ID.
+      parameters:
+      - description: ID do funcionário
+        format: int64
+        in: query
+        name: employee_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Telefones encontrados com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID do funcionário inválido ou não informado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Nenhum telefone encontrado para o funcionário
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca telefones por funcionário
+      tags:
+      - phones
+  /phones/id:
+    get:
+      description: Busca um telefone pelo ID informado como query parameter.
+      parameters:
+      - description: ID do telefone
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Telefone encontrado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID inválido ou não informado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Telefone não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca telefone por ID
+      tags:
+      - phones
 swagger: "2.0"

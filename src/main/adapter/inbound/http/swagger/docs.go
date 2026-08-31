@@ -492,6 +492,244 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/phones": {
+            "get": {
+                "description": "Retorna todos os telefones cadastrados.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Lista todos os telefones",
+                "responses": {
+                    "200": {
+                        "description": "Telefones encontrados com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Atualiza os dados de um telefone existente através do ID informado como query parameter.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Atualiza um telefone",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID do telefone",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados atualizados do telefone",
+                        "name": "phone",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePhoneDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Telefone atualizado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID ou dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Telefone não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria um novo telefone a partir dos dados enviados no corpo da requisição.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Cria um novo telefone",
+                "parameters": [
+                    {
+                        "description": "Dados do telefone",
+                        "name": "phone",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePhoneDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Telefone criado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/phones/employee_id": {
+            "get": {
+                "description": "Retorna os telefones vinculados ao funcionário informado pelo ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Busca telefones por funcionário",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID do funcionário",
+                        "name": "employee_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Telefones encontrados com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID do funcionário inválido ou não informado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhum telefone encontrado para o funcionário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/phones/id": {
+            "get": {
+                "description": "Busca um telefone pelo ID informado como query parameter.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Busca telefone por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID do telefone",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Telefone encontrado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou não informado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Telefone não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -558,6 +796,37 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreatePhoneDto": {
+            "type": "object",
+            "required": [
+                "imei",
+                "model",
+                "serial_number"
+            ],
+            "properties": {
+                "employee_id": {
+                    "type": "integer"
+                },
+                "equipament": {
+                    "type": "string"
+                },
+                "has_chip": {
+                    "type": "boolean"
+                },
+                "imei": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "serial_number": {
+                    "type": "string"
+                },
+                "situation": {
                     "type": "string"
                 }
             }

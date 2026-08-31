@@ -12,6 +12,7 @@ func Routes(
 	r *gin.Engine,
 	employeeController *controller.EmployeeController,
 	machineController *controller.MachineController,
+	phoneController *controller.PhoneController,
 ) {
 	api := r.Group("/api")
 
@@ -34,6 +35,17 @@ func Routes(
 			m.GET("/employee_id", machineController.FindByEmployeeIDController())
 			m.GET("", machineController.GetAllMachinesController())
 			m.PUT("", machineController.UpdateMachineController())
+		}
+	}
+
+	{
+		p := api.Group("/phones")
+		{
+			p.POST("", phoneController.CreatePhoneController())
+			p.GET("/id", phoneController.FindByIDController())
+			p.GET("/employee_id", phoneController.FindByEmployeeIDController())
+			p.GET("", phoneController.GetAllPhonesController())
+			p.PUT("", phoneController.UpdatePhoneController())
 		}
 	}
 
