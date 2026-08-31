@@ -38,11 +38,30 @@ func main() {
 	machineUseCase := usecase.NewMachineUseCase(machineRepository)
 	machineController := controller.NewMachineController(machineUseCase)
 
+	phoneRepository := repository.NewPhoneRepository(db)
+	phoneUseCase := usecase.NewPhoneUseCase(phoneRepository)
+	phoneController := controller.NewPhoneController(phoneUseCase)
+
+	monitorRepository := repository.NewMonitorRepository(db)
+	monitorUseCase := usecase.NewMonitorUseCase(monitorRepository)
+	monitorController := controller.NewMonitorController(monitorUseCase)
+
+	printerRepository := repository.NewPrinterRepository(db)
+	printerUseCase := usecase.NewPrinterUseCase(printerRepository)
+	printerController := controller.NewPrinterController(printerUseCase)
+
 	r := gin.Default()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	routes.Routes(r, employeeController, machineController)
+	routes.Routes(
+		r,
+		employeeController,
+		machineController,
+		phoneController,
+		monitorController,
+		printerController,
+	)
 
 	err = r.Run(":8080")
 	if err != nil {

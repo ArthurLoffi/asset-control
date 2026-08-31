@@ -486,6 +486,671 @@
                     }
                 }
             }
+        },
+        "/monitors": {
+            "get": {
+                "description": "Retorna todos os monitores cadastrados.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "monitors"
+                ],
+                "summary": "Lista todos os monitores",
+                "responses": {
+                    "200": {
+                        "description": "Monitores encontrados com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Atualiza os dados de um monitor existente através do ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "monitors"
+                ],
+                "summary": "Atualiza um monitor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID do monitor",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados atualizados do monitor",
+                        "name": "monitor",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateMonitorDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Monitor atualizado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Monitor não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria um novo monitor a partir dos dados enviados no corpo da requisição.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "monitors"
+                ],
+                "summary": "Cria um novo monitor",
+                "parameters": [
+                    {
+                        "description": "Dados do monitor",
+                        "name": "monitor",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateMonitorDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Monitor criado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/monitors/employee": {
+            "get": {
+                "description": "Retorna todos os monitores associados ao ID de um funcionário.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "monitors"
+                ],
+                "summary": "Busca monitores por funcionário",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID do funcionário",
+                        "name": "employee_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Monitores encontrados com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID do funcionário inválido ou não informado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhum monitor encontrado para o funcionário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/monitors/id": {
+            "get": {
+                "description": "Busca um monitor pelo ID informado como query parameter.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "monitors"
+                ],
+                "summary": "Busca monitor por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID do monitor",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Monitor encontrado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou não informado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Monitor não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/phones": {
+            "get": {
+                "description": "Retorna todos os telefones cadastrados.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Lista todos os telefones",
+                "responses": {
+                    "200": {
+                        "description": "Telefones encontrados com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Atualiza os dados de um telefone existente através do ID informado como query parameter.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Atualiza um telefone",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID do telefone",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados atualizados do telefone",
+                        "name": "phone",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePhoneDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Telefone atualizado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID ou dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Telefone não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria um novo telefone a partir dos dados enviados no corpo da requisição.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Cria um novo telefone",
+                "parameters": [
+                    {
+                        "description": "Dados do telefone",
+                        "name": "phone",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePhoneDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Telefone criado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/phones/employee_id": {
+            "get": {
+                "description": "Retorna os telefones vinculados ao funcionário informado pelo ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Busca telefones por funcionário",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID do funcionário",
+                        "name": "employee_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Telefones encontrados com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID do funcionário inválido ou não informado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhum telefone encontrado para o funcionário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/phones/id": {
+            "get": {
+                "description": "Busca um telefone pelo ID informado como query parameter.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Busca telefone por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID do telefone",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Telefone encontrado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou não informado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Telefone não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/printers": {
+            "get": {
+                "description": "Retorna todas as impressoras cadastradas.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "printers"
+                ],
+                "summary": "Lista todas as impressoras",
+                "responses": {
+                    "200": {
+                        "description": "Impressoras encontradas com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Atualiza os dados de uma impressora existente através do ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "printers"
+                ],
+                "summary": "Atualiza uma impressora",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID da impressora",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados atualizados da impressora",
+                        "name": "printer",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePrinterDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Impressora atualizada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Impressora não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria uma nova impressora a partir dos dados enviados no corpo da requisição.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "printers"
+                ],
+                "summary": "Cria uma nova impressora",
+                "parameters": [
+                    {
+                        "description": "Dados da impressora",
+                        "name": "printer",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePrinterDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Impressora criada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/printers/id": {
+            "get": {
+                "description": "Busca uma impressora pelo ID informado como query parameter.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "printers"
+                ],
+                "summary": "Busca impressora por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID da impressora",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Impressora encontrada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou não informado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Impressora não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -552,6 +1217,99 @@
                     "type": "string"
                 },
                 "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateMonitorDto": {
+            "type": "object",
+            "required": [
+                "model"
+            ],
+            "properties": {
+                "asset_number": {
+                    "type": "integer"
+                },
+                "brand": {
+                    "type": "string"
+                },
+                "employee_id": {
+                    "type": "integer"
+                },
+                "has_monitor": {
+                    "type": "boolean"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "monitor_condition": {
+                    "type": "string"
+                },
+                "serial_number": {
+                    "type": "string"
+                },
+                "situation": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreatePhoneDto": {
+            "type": "object",
+            "required": [
+                "imei",
+                "model",
+                "serial_number"
+            ],
+            "properties": {
+                "employee_id": {
+                    "type": "integer"
+                },
+                "equipament": {
+                    "type": "string"
+                },
+                "has_chip": {
+                    "type": "boolean"
+                },
+                "imei": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "serial_number": {
+                    "type": "string"
+                },
+                "situation": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreatePrinterDto": {
+            "type": "object",
+            "required": [
+                "asset_number",
+                "branch_id",
+                "departments_id",
+                "ip",
+                "model"
+            ],
+            "properties": {
+                "asset_number": {
+                    "type": "integer"
+                },
+                "branch_id": {
+                    "type": "integer"
+                },
+                "departments_id": {
+                    "type": "integer"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "machine_condition": {
+                    "type": "string"
+                },
+                "model": {
                     "type": "string"
                 }
             }

@@ -12,6 +12,9 @@ func Routes(
 	r *gin.Engine,
 	employeeController *controller.EmployeeController,
 	machineController *controller.MachineController,
+	phoneController *controller.PhoneController,
+	monitorController *controller.MonitorController,
+	printerController *controller.PrinterController,
 ) {
 	api := r.Group("/api")
 
@@ -21,7 +24,7 @@ func Routes(
 			e.POST("", employeeController.CreateEmployeeController())
 			e.GET("/id", employeeController.FindByIDController())
 			e.GET("/name", employeeController.FindByNameController())
-			e.GET("", employeeController.GetAllEmployees())
+			e.GET("", employeeController.GetAllEmployeesController())
 			e.PUT("", employeeController.UpdateEmployeeController())
 		}
 	}
@@ -34,6 +37,38 @@ func Routes(
 			m.GET("/employee_id", machineController.FindByEmployeeIDController())
 			m.GET("", machineController.GetAllMachinesController())
 			m.PUT("", machineController.UpdateMachineController())
+		}
+	}
+
+	{
+		p := api.Group("/phones")
+		{
+			p.POST("", phoneController.CreatePhoneController())
+			p.GET("/id", phoneController.FindByIDController())
+			p.GET("/employee_id", phoneController.FindByEmployeeIDController())
+			p.GET("", phoneController.GetAllPhonesController())
+			p.PUT("", phoneController.UpdatePhoneController())
+		}
+	}
+
+	{
+		mo := api.Group("/monitors")
+		{
+			mo.POST("", monitorController.CreateMonitorController())
+			mo.GET("/id", monitorController.FindByIDController())
+			mo.GET("/employee_id", monitorController.FindByEmployeeIDController())
+			mo.GET("", monitorController.GetAllMonitorsController())
+			mo.PUT("", monitorController.UpdateMonitorController())
+		}
+	}
+
+	{
+		pr := api.Group("/printers")
+		{
+			pr.POST("", printerController.CreatePrinterController())
+			pr.GET("/id", printerController.FindByIDController())
+			pr.GET("", printerController.GetAllPrintersController())
+			pr.PUT("", printerController.UpdatePrinterController())
 		}
 	}
 

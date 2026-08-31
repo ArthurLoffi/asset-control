@@ -108,7 +108,7 @@ func (ctl *EmployeeController) UpdateEmployeeController() gin.HandlerFunc {
 // @Success      200  {object}  map[string]interface{}  "Funcionários encontrados com sucesso"
 // @Failure      500  {object}  map[string]string  "Erro interno do servidor"
 // @Router       /employees [get]
-func (ctl *EmployeeController) GetAllEmployees() gin.HandlerFunc {
+func (ctl *EmployeeController) GetAllEmployeesController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		employees, err := ctl.employeeUseCase.GetAllEmployees()
 		if err != nil {
