@@ -19,6 +19,17 @@ func NewMachineController(machineUseCase *usecase.MachineUseCase) *MachineContro
 	}
 }
 
+// CreateMachine godoc
+// @Summary      Cria uma nova máquina
+// @Description  Cria uma nova máquina a partir dos dados enviados no corpo da requisição.
+// @Tags         machines
+// @Accept       json
+// @Produce      json
+// @Param        machine  body      dto.CreateMachineDto  true  "Dados da máquina"
+// @Success      201      {object}  map[string]interface{}  "Máquina criada com sucesso"
+// @Failure      400      {object}  map[string]string  "Dados inválidos"
+// @Failure      500      {object}  map[string]string  "Erro interno do servidor"
+// @Router       /machines [post]
 func (ctl *MachineController) CreateMachineController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var machine dto.MachineDto
@@ -44,6 +55,18 @@ func (ctl *MachineController) CreateMachineController() gin.HandlerFunc {
 	}
 }
 
+// UpdateMachine godoc
+// @Summary      Atualiza uma máquina
+// @Description  Atualiza os dados de uma máquina existente através do ID informado como query parameter.
+// @Tags         machines
+// @Accept       json
+// @Produce      json
+// @Param        id       query     uint64          true  "ID da máquina"
+// @Param        machine  body      dto.CreateMachineDto  true  "Dados atualizados da máquina"
+// @Success      200      {object}  map[string]interface{}  "Máquina atualizada com sucesso"
+// @Failure      400      {object}  map[string]string  "ID ou dados inválidos"
+// @Failure      404      {object}  map[string]string  "Máquina não encontrada"
+// @Router       /machines [put]
 func (ctl *MachineController) UpdateMachineController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Query("id")
@@ -77,6 +100,14 @@ func (ctl *MachineController) UpdateMachineController() gin.HandlerFunc {
 	}
 }
 
+// GetAllMachines godoc
+// @Summary      Lista todas as máquinas
+// @Description  Retorna todas as máquinas cadastradas.
+// @Tags         machines
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}  "Máquinas encontradas com sucesso"
+// @Failure      500  {object}  map[string]string  "Erro interno do servidor"
+// @Router       /machines [get]
 func (ctl *MachineController) GetAllMachinesController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		machines, err := ctl.machineUseCase.GetAllMachines()
@@ -94,6 +125,16 @@ func (ctl *MachineController) GetAllMachinesController() gin.HandlerFunc {
 	}
 }
 
+// FindMachineByID godoc
+// @Summary      Busca máquina por ID
+// @Description  Busca uma máquina pelo ID informado como query parameter.
+// @Tags         machines
+// @Produce      json
+// @Param        id  query  uint64  true  "ID da máquina"
+// @Success      200  {object}  map[string]interface{}  "Máquina encontrada com sucesso"
+// @Failure      400  {object}  map[string]string  "ID inválido ou não informado"
+// @Failure      404  {object}  map[string]string  "Máquina não encontrada"
+// @Router       /machines/id [get]
 func (ctl *MachineController) FindByIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Query("id")
@@ -123,6 +164,16 @@ func (ctl *MachineController) FindByIDController() gin.HandlerFunc {
 	}
 }
 
+// FindMachineByEmployeeID godoc
+// @Summary      Busca máquinas por funcionário
+// @Description  Retorna as máquinas vinculadas ao funcionário informado pelo ID.
+// @Tags         machines
+// @Produce      json
+// @Param        employee_id  query  uint64  true  "ID do funcionário"
+// @Success      200  {object}  map[string]interface{}  "Máquinas encontradas com sucesso"
+// @Failure      400  {object}  map[string]string  "ID do funcionário inválido ou não informado"
+// @Failure      404  {object}  map[string]string  "Nenhuma máquina encontrada para o funcionário"
+// @Router       /machines/employee_id [get]
 func (ctl *MachineController) FindByEmployeeIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Query("employee_id")
