@@ -106,8 +106,9 @@ func (er *EmployeeRepository) FindByID(id uint64) (dto.EmployeeDto, error) {
 
 func (er *EmployeeRepository) FindByName(name string) (dto.EmployeeDto, error) {
 	var employeeEntity entities.Employee
+	nameToLikeSql := "%" + name + "%"
 
-	if err := er.db.Where("name = ?", name).First(&employeeEntity).Error; err != nil {
+	if err := er.db.Where("name LIKE ?", nameToLikeSql).First(&employeeEntity).Error; err != nil {
 		return dto.EmployeeDto{}, err
 	}
 

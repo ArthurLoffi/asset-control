@@ -13,7 +13,7 @@ import (
 )
 
 // @title           Asset control API
-// @version         v0.2.0
+// @version         v0.3.0
 // @description     Está é uma API utilizada para controlar os equipamentos de TI.
 
 // @contact.name   Suporte BNTG
@@ -50,6 +50,10 @@ func main() {
 	printerUseCase := usecase.NewPrinterUseCase(printerRepository)
 	printerController := controller.NewPrinterController(printerUseCase)
 
+	utilsRepository := repository.NewUtilsRepository(db)
+	utilsUseCase := usecase.NewUtilsUseCase(utilsRepository)
+	utilsController := controller.NewUtilsController(utilsUseCase)
+
 	r := gin.Default()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
@@ -61,10 +65,11 @@ func main() {
 		phoneController,
 		monitorController,
 		printerController,
+		utilsController,
 	)
 
 	err = r.Run(":8080")
 	if err != nil {
-		return
+		log.Fatal(err)
 	}
 }

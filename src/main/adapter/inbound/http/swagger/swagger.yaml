@@ -119,7 +119,7 @@ info:
     name: Suporte BNTG
   description: Está é uma API utilizada para controlar os equipamentos de TI.
   title: Asset control API
-  version: v0.2.0
+  version: v0.3.0
 paths:
   /employees:
     get:
@@ -891,4 +891,58 @@ paths:
       summary: Busca impressora por ID
       tags:
       - printers
+  /utils/branch:
+    get:
+      description: Retorna o nome dela de acordo com o ID passado.
+      parameters:
+      - description: ID da branch
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Branch encontrada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Branch não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Mostra o nome da branch
+      tags:
+      - branches
+  /utils/department:
+    get:
+      description: Retorna o nome dele de acordo com o ID passado.
+      parameters:
+      - description: ID do department
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Department encontrada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Department não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Mostra o nome do departamento
+      tags:
+      - departments
 swagger: "2.0"
