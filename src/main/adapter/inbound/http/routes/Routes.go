@@ -15,6 +15,7 @@ func Routes(
 	phoneController *controller.PhoneController,
 	monitorController *controller.MonitorController,
 	printerController *controller.PrinterController,
+	utilsController *controller.UtilsController,
 ) {
 	api := r.Group("/api")
 
@@ -69,6 +70,14 @@ func Routes(
 			pr.GET("/id", printerController.FindByIDController())
 			pr.GET("", printerController.GetAllPrintersController())
 			pr.PUT("", printerController.UpdatePrinterController())
+		}
+	}
+
+	{
+		utils := api.Group("/utils")
+		{
+			utils.GET("/branch", utilsController.BranchIdToDescription())
+			utils.GET("/department", utilsController.DepartmentIdToDescription())
 		}
 	}
 
