@@ -1198,6 +1198,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/utils/branches": {
+            "get": {
+                "description": "Retorna todas as filiais criadas no banco de dados.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "branches"
+                ],
+                "summary": "Lista todas as filiais criadas",
+                "responses": {
+                    "200": {
+                        "description": "Filias encontrados com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/utils/department": {
             "get": {
                 "description": "Retorna o nome dele de acordo com o ID passado.",
@@ -1228,6 +1258,36 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Department não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/utils/departments": {
+            "get": {
+                "description": "Retorna todos os setores criados no banco de dados.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "departments"
+                ],
+                "summary": "Lista todos os setores criados",
+                "responses": {
+                    "200": {
+                        "description": "Setores encontrados com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

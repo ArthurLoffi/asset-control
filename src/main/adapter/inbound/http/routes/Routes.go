@@ -76,7 +76,9 @@ func Routes(
 	{
 		utils := api.Group("/utils")
 		{
+			utils.GET("/branches", utilsController.GetAllBranchs())
 			utils.GET("/branch", utilsController.BranchIdToDescription())
+			utils.GET("/departments", utilsController.GetAllDepartments())
 			utils.GET("/department", utilsController.DepartmentIdToDescription())
 		}
 	}

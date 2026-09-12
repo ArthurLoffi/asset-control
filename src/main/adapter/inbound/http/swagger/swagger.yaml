@@ -949,6 +949,26 @@ paths:
       summary: Mostra o nome da branch
       tags:
       - branches
+  /utils/branches:
+    get:
+      description: Retorna todas as filiais criadas no banco de dados.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Filias encontrados com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista todas as filiais criadas
+      tags:
+      - branches
   /utils/department:
     get:
       description: Retorna o nome dele de acordo com o ID passado.
@@ -974,6 +994,26 @@ paths:
               type: string
             type: object
       summary: Mostra o nome do departamento
+      tags:
+      - departments
+  /utils/departments:
+    get:
+      description: Retorna todos os setores criados no banco de dados.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Setores encontrados com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista todos os setores criados
       tags:
       - departments
 swagger: "2.0"
