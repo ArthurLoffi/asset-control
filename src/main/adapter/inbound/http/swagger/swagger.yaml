@@ -3,14 +3,19 @@ definitions:
   dto.CreateEmployeeDto:
     properties:
       branch_id:
+        maximum: 9223372036854776000
         type: integer
       department_id:
+        maximum: 9223372036854776000
         type: integer
       email:
+        maxLength: 255
         type: string
       name:
+        maxLength: 255
         type: string
       phone:
+        maxLength: 20
         type: string
     required:
     - branch_id
@@ -21,24 +26,32 @@ definitions:
   dto.CreateMachineDto:
     properties:
       asset_number:
+        minimum: 0
         type: integer
       employee_id:
+        maximum: 9223372036854776000
         type: integer
       has_keyboard:
         type: boolean
       has_mouse:
         type: boolean
       machine_condition:
+        maxLength: 100
         type: string
       model:
+        maxLength: 255
         type: string
       serial_number:
+        maxLength: 100
         type: string
       situation:
+        maxLength: 100
         type: string
       type:
+        maxLength: 100
         type: string
       user:
+        maxLength: 255
         type: string
     required:
     - model
@@ -49,20 +62,27 @@ definitions:
   dto.CreateMonitorDto:
     properties:
       asset_number:
+        maximum: 9223372036854776000
         type: integer
       brand:
+        maxLength: 100
         type: string
       employee_id:
+        maximum: 9223372036854776000
         type: integer
       has_monitor:
         type: boolean
       model:
+        maxLength: 100
         type: string
       monitor_condition:
+        maxLength: 100
         type: string
       serial_number:
+        maxLength: 100
         type: string
       situation:
+        maxLength: 100
         type: string
     required:
     - model
@@ -70,18 +90,24 @@ definitions:
   dto.CreatePhoneDto:
     properties:
       employee_id:
+        maximum: 9223372036854776000
         type: integer
       equipament:
+        maxLength: 100
         type: string
       has_chip:
         type: boolean
       imei:
+        maxLength: 100
         type: string
       model:
+        maxLength: 100
         type: string
       serial_number:
+        maxLength: 100
         type: string
       situation:
+        maxLength: 100
         type: string
     required:
     - imei
@@ -91,16 +117,21 @@ definitions:
   dto.CreatePrinterDto:
     properties:
       asset_number:
+        maximum: 9223372036854776000
         type: integer
       branch_id:
+        maximum: 9223372036854776000
         type: integer
       departments_id:
+        maximum: 9223372036854776000
         type: integer
       ip:
         type: string
       machine_condition:
+        maxLength: 100
         type: string
       model:
+        maxLength: 100
         type: string
     required:
     - asset_number
@@ -536,7 +567,7 @@ paths:
       summary: Atualiza um monitor
       tags:
       - monitors
-  /monitors/employee:
+  /monitors/employee_id:
     get:
       description: Retorna todos os monitores associados ao ID de um funcionário.
       parameters:

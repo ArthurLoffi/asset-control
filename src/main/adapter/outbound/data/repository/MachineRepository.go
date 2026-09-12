@@ -1,166 +1,76 @@
 package repository
 
 import (
+	"context"
+
 	"asset-control/src/main/adapter/outbound/data/entities"
 	"asset-control/src/main/domain/dto"
-	"errors"
+	"asset-control/src/main/domain/ports"
 
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type MachineRepository struct {
-	db *gorm.DB
+	documents documentRepository[entities.Machine]
 }
 
-func NewMachineRepository(db *gorm.DB) *MachineRepository {
-	return &MachineRepository{db: db}
+var _ ports.MachinePorts = (*MachineRepository)(nil)
+
+func NewMachineRepository(db *mongo.Database) *MachineRepository {
+	return &MachineRepository{documents: newDocumentRepository[entities.Machine](db, (entities.Machine{}).CollectionName())}
 }
 
-func (mr *MachineRepository) CreateMachine(machine dto.MachineDto) error {
-	machineEntity := entities.Machine{
-		User:             machine.User,
-		AssetNumber:      machine.AssetNumber,
-		Type:             machine.Type,
-		Model:            machine.Model,
-		SerialNumber:     machine.SerialNumber,
-		HasKeyboard:      machine.HasKeyboard,
-		HasMouse:         machine.HasMouse,
-		MachineCondition: machine.MachineCondition,
-		Situation:        machine.Situation,
-		EmployeeID:       machine.EmployeeID,
+func machineDocument(input dto.CreateMachineDto) entities.Machine {
+	return entities.Machine{
+		User:             input.User,
+		AssetNumber:      input.AssetNumber,
+		Type:             input.Type,
+		Model:            input.Model,
+		SerialNumber:     input.SerialNumber,
+		HasKeyboard:      input.HasKeyboard,
+		HasMouse:         input.HasMouse,
+		MachineCondition: input.MachineCondition,
+		Situation:        input.Situation,
+		EmployeeID:       input.EmployeeID,
 	}
-
-	if err := mr.db.Create(&machineEntity).Error; err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func (mr *MachineRepository) UpdateMachine(
-	id uint64,
-	machine dto.MachineDto,
-) (dto.MachineDto, error) {
-	var machineEntity entities.Machine
-
-	if err := mr.db.First(&machineEntity, id).Error; err != nil {
-		return dto.MachineDto{}, err
-	}
-
-	machineEntity.User = machine.User
-	machineEntity.AssetNumber = machine.AssetNumber
-	machineEntity.Type = machine.Type
-	machineEntity.Model = machine.Model
-	machineEntity.SerialNumber = machine.SerialNumber
-	machineEntity.HasKeyboard = machine.HasKeyboard
-	machineEntity.HasMouse = machine.HasMouse
-	machineEntity.MachineCondition = machine.MachineCondition
-	machineEntity.Situation = machine.Situation
-	machineEntity.EmployeeID = machine.EmployeeID
-
-	if err := mr.db.Save(&machineEntity).Error; err != nil {
-		return dto.MachineDto{}, err
-	}
-
-	return dto.MachineDto{
-		ID:               machineEntity.ID,
-		User:             machineEntity.User,
-		AssetNumber:      machineEntity.AssetNumber,
-		Type:             machineEntity.Type,
-		Model:            machineEntity.Model,
-		SerialNumber:     machineEntity.SerialNumber,
-		HasKeyboard:      machineEntity.HasKeyboard,
-		HasMouse:         machineEntity.HasMouse,
-		MachineCondition: machineEntity.MachineCondition,
-		Situation:        machineEntity.Situation,
-		EmployeeID:       machineEntity.EmployeeID,
-		CreatedAt:        machineEntity.CreatedAt,
-	}, nil
+func (r *MachineRepository) CreateMachine(ctx context.Context, input dto.CreateMachineDto) (dto.MachineDto, error) {
+	document, err := r.documents.create(ctx, machineDocument(input))
+	return dto.MachineDto(document), err
 }
 
-func (mr *MachineRepository) GetAllMachines() ([]dto.MachineDto, error) {
-	var machineEntities []entities.Machine
+func (r *MachineRepository) UpdateMachine(ctx context.Context, id uint64, input dto.CreateMachineDto) (dto.MachineDto, error) {
+	document, err := r.documents.update(ctx, id, machineDocument(input))
+	return dto.MachineDto(document), err
+}
 
-	if err := mr.db.Find(&machineEntities).Error; err != nil {
+func (r *MachineRepository) GetAllMachines(ctx context.Context) ([]dto.MachineDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{})
+	if err != nil {
 		return nil, err
 	}
-
-	machines := make([]dto.MachineDto, 0, len(machineEntities))
-
-	for _, machineEntity := range machineEntities {
-		machines = append(machines, dto.MachineDto{
-			ID:               machineEntity.ID,
-			User:             machineEntity.User,
-			AssetNumber:      machineEntity.AssetNumber,
-			Type:             machineEntity.Type,
-			Model:            machineEntity.Model,
-			SerialNumber:     machineEntity.SerialNumber,
-			HasKeyboard:      machineEntity.HasKeyboard,
-			HasMouse:         machineEntity.HasMouse,
-			MachineCondition: machineEntity.MachineCondition,
-			Situation:        machineEntity.Situation,
-			EmployeeID:       machineEntity.EmployeeID,
-			CreatedAt:        machineEntity.CreatedAt,
-		})
+	result := make([]dto.MachineDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.MachineDto(document))
 	}
-
-	return machines, nil
+	return result, nil
 }
 
-func (mr *MachineRepository) FindByID(id uint64) (dto.MachineDto, error) {
-	var machineEntity entities.Machine
-
-	if err := mr.db.First(&machineEntity, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return dto.MachineDto{}, err
-		}
-
-		return dto.MachineDto{}, err
-	}
-
-	return dto.MachineDto{
-		ID:               machineEntity.ID,
-		User:             machineEntity.User,
-		AssetNumber:      machineEntity.AssetNumber,
-		Type:             machineEntity.Type,
-		Model:            machineEntity.Model,
-		SerialNumber:     machineEntity.SerialNumber,
-		HasKeyboard:      machineEntity.HasKeyboard,
-		HasMouse:         machineEntity.HasMouse,
-		MachineCondition: machineEntity.MachineCondition,
-		Situation:        machineEntity.Situation,
-		EmployeeID:       machineEntity.EmployeeID,
-		CreatedAt:        machineEntity.CreatedAt,
-	}, nil
+func (r *MachineRepository) FindByID(ctx context.Context, id uint64) (dto.MachineDto, error) {
+	document, err := r.documents.findOne(ctx, bson.M{"id": id})
+	return dto.MachineDto(document), err
 }
 
-func (mr *MachineRepository) FindByEmployeeID(employeeID uint64) ([]dto.MachineDto, error) {
-	var machineEntities []entities.Machine
-
-	if err := mr.db.
-		Where("employee_id = ?", employeeID).
-		Find(&machineEntities).Error; err != nil {
+func (r *MachineRepository) FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.MachineDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{"employee_id": employeeID})
+	if err != nil {
 		return nil, err
 	}
-
-	machines := make([]dto.MachineDto, 0, len(machineEntities))
-
-	for _, machineEntity := range machineEntities {
-		machines = append(machines, dto.MachineDto{
-			ID:               machineEntity.ID,
-			User:             machineEntity.User,
-			AssetNumber:      machineEntity.AssetNumber,
-			Type:             machineEntity.Type,
-			Model:            machineEntity.Model,
-			SerialNumber:     machineEntity.SerialNumber,
-			HasKeyboard:      machineEntity.HasKeyboard,
-			HasMouse:         machineEntity.HasMouse,
-			MachineCondition: machineEntity.MachineCondition,
-			Situation:        machineEntity.Situation,
-			EmployeeID:       machineEntity.EmployeeID,
-			CreatedAt:        machineEntity.CreatedAt,
-		})
+	result := make([]dto.MachineDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.MachineDto(document))
 	}
-
-	return machines, nil
+	return result, nil
 }

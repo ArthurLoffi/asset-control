@@ -1,32 +1,36 @@
 package usecase
 
 import (
+	"context"
+
 	"asset-control/src/main/domain/dto"
 	"asset-control/src/main/domain/ports"
 )
 
-type PrinterUseCase struct {
-	printerPorts ports.PrinterPorts
+type PrinterUseCase struct{ repository ports.PrinterPorts }
+
+func NewPrinterUseCase(repository ports.PrinterPorts) *PrinterUseCase {
+	return &PrinterUseCase{repository: repository}
 }
 
-func NewPrinterUseCase(printerPorts ports.PrinterPorts) *PrinterUseCase {
-	return &PrinterUseCase{
-		printerPorts: printerPorts,
+func (uc *PrinterUseCase) CreatePrinter(ctx context.Context, input dto.CreatePrinterDto) (dto.PrinterDto, error) {
+	if err := input.Validate(); err != nil {
+		return dto.PrinterDto{}, err
 	}
+	return uc.repository.CreatePrinter(ctx, input)
 }
 
-func (uc *PrinterUseCase) CreatePrinter(printer dto.CreatePrinterDto) error {
-	return uc.printerPorts.CreatePrinter(printer)
+func (uc *PrinterUseCase) UpdatePrinter(ctx context.Context, id uint64, input dto.CreatePrinterDto) (dto.PrinterDto, error) {
+	if err := input.Validate(); err != nil {
+		return dto.PrinterDto{}, err
+	}
+	return uc.repository.UpdatePrinter(ctx, id, input)
 }
 
-func (uc *PrinterUseCase) UpdatePrinter(id uint64, printer dto.CreatePrinterDto) (dto.PrinterDto, error) {
-	return uc.printerPorts.UpdatePrinter(id, printer)
+func (uc *PrinterUseCase) GetAllPrinters(ctx context.Context) ([]dto.PrinterDto, error) {
+	return uc.repository.GetAllPrinters(ctx)
 }
 
-func (uc *PrinterUseCase) GetAllPrinters() ([]dto.PrinterDto, error) {
-	return uc.printerPorts.GetAllPrinters()
-}
-
-func (uc *PrinterUseCase) FindByID(id uint64) (dto.PrinterDto, error) {
-	return uc.printerPorts.FindByID(id)
+func (uc *PrinterUseCase) FindByID(ctx context.Context, id uint64) (dto.PrinterDto, error) {
+	return uc.repository.FindByID(ctx, id)
 }

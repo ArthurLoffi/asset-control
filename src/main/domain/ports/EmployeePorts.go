@@ -1,15 +1,15 @@
 package ports
 
-import "asset-control/src/main/domain/dto"
+import (
+	"context"
+
+	"asset-control/src/main/domain/dto"
+)
 
 type EmployeesPorts interface {
-	CreateEmployee(employee dto.EmployeeDto) error
-
-	UpdateEmployee(id uint64, employee dto.EmployeeDto) (dto.EmployeeDto, error)
-
-	GetAllEmployees() ([]dto.EmployeeDto, error)
-
-	FindByName(name string) (dto.EmployeeDto, error)
-
-	FindByID(id uint64) (dto.EmployeeDto, error)
+	CreateEmployee(ctx context.Context, input dto.CreateEmployeeDto) (dto.EmployeeDto, error)
+	UpdateEmployee(ctx context.Context, id uint64, input dto.CreateEmployeeDto) (dto.EmployeeDto, error)
+	GetAllEmployees(ctx context.Context) ([]dto.EmployeeDto, error)
+	FindByID(ctx context.Context, id uint64) (dto.EmployeeDto, error)
+	FindByName(ctx context.Context, name string) (dto.EmployeeDto, error)
 }

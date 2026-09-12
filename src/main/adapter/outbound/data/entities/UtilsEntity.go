@@ -1,19 +1,19 @@
 package entities
 
 type Branch struct {
-	Id   uint64 `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Name string `gorm:"column:name;type:varchar(100);not null" json:"name"`
+	Id   uint64 `bson:"id" json:"id"`
+	Name string `bson:"name" json:"name"`
 }
 
-func (Branch) TableName() string {
+func (Branch) CollectionName() string {
 	return "branches"
 }
 
 type Department struct {
-	Id   uint64 `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Name string `gorm:"column:name;type:varchar(100);not null" json:"name"`
+	Id   uint64 `bson:"id" json:"id"`
+	Name string `bson:"name" json:"name"`
 }
 
-func (Department) TableName() string {
+func (Department) CollectionName() string {
 	return "departments"
 }

@@ -1,124 +1,65 @@
 package repository
 
 import (
+	"context"
+	"regexp"
+
 	"asset-control/src/main/adapter/outbound/data/entities"
 	"asset-control/src/main/domain/dto"
-	"errors"
+	"asset-control/src/main/domain/ports"
 
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type EmployeeRepository struct {
-	db *gorm.DB
+	documents documentRepository[entities.Employee]
 }
 
-func NewEmployeeRepository(db *gorm.DB) *EmployeeRepository {
-	return &EmployeeRepository{db: db}
+var _ ports.EmployeesPorts = (*EmployeeRepository)(nil)
+
+func NewEmployeeRepository(db *mongo.Database) *EmployeeRepository {
+	return &EmployeeRepository{documents: newDocumentRepository[entities.Employee](db, (entities.Employee{}).CollectionName())}
 }
 
-func (er *EmployeeRepository) CreateEmployee(employee dto.EmployeeDto) error {
-	employeeEntity := entities.Employee{
-		Name:         employee.Name,
-		Phone:        employee.Phone,
-		Email:        employee.Email,
-		BranchID:     employee.BranchID,
-		DepartmentID: employee.DepartmentID,
+func employeeDocument(input dto.CreateEmployeeDto) entities.Employee {
+	return entities.Employee{
+		Name:         input.Name,
+		Phone:        input.Phone,
+		Email:        input.Email,
+		BranchID:     input.BranchID,
+		DepartmentID: input.DepartmentID,
 	}
-
-	if err := er.db.Create(&employeeEntity).Error; err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func (er *EmployeeRepository) UpdateEmployee(id uint64, employee dto.EmployeeDto) (dto.EmployeeDto, error) {
-	var employeeEntity entities.Employee
-
-	if err := er.db.First(&employeeEntity, id).Error; err != nil {
-		return dto.EmployeeDto{}, err
-	}
-
-	employeeEntity.Name = employee.Name
-	employeeEntity.Phone = employee.Phone
-	employeeEntity.Email = employee.Email
-	employeeEntity.BranchID = employee.BranchID
-	employeeEntity.DepartmentID = employee.DepartmentID
-
-	if err := er.db.Save(&employeeEntity).Error; err != nil {
-		return dto.EmployeeDto{}, err
-	}
-
-	return dto.EmployeeDto{
-		ID:           employeeEntity.ID,
-		Name:         employeeEntity.Name,
-		Phone:        employeeEntity.Phone,
-		Email:        employeeEntity.Email,
-		BranchID:     employeeEntity.BranchID,
-		DepartmentID: employeeEntity.DepartmentID,
-		CreatedAt:    employeeEntity.CreatedAt,
-	}, nil
+func (r *EmployeeRepository) CreateEmployee(ctx context.Context, input dto.CreateEmployeeDto) (dto.EmployeeDto, error) {
+	document, err := r.documents.create(ctx, employeeDocument(input))
+	return dto.EmployeeDto(document), err
 }
 
-func (er *EmployeeRepository) GetAllEmployees() ([]dto.EmployeeDto, error) {
-	var employeeEntities []entities.Employee
+func (r *EmployeeRepository) UpdateEmployee(ctx context.Context, id uint64, input dto.CreateEmployeeDto) (dto.EmployeeDto, error) {
+	document, err := r.documents.update(ctx, id, employeeDocument(input))
+	return dto.EmployeeDto(document), err
+}
 
-	if err := er.db.Find(&employeeEntities).Error; err != nil {
+func (r *EmployeeRepository) GetAllEmployees(ctx context.Context) ([]dto.EmployeeDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{})
+	if err != nil {
 		return nil, err
 	}
-
-	employees := make([]dto.EmployeeDto, 0, len(employeeEntities))
-	for _, e := range employeeEntities {
-		employees = append(employees, dto.EmployeeDto{
-			ID:           e.ID,
-			Name:         e.Name,
-			Phone:        e.Phone,
-			Email:        e.Email,
-			BranchID:     e.BranchID,
-			DepartmentID: e.DepartmentID,
-			CreatedAt:    e.CreatedAt,
-		})
+	result := make([]dto.EmployeeDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.EmployeeDto(document))
 	}
-
-	return employees, nil
+	return result, nil
 }
 
-func (er *EmployeeRepository) FindByID(id uint64) (dto.EmployeeDto, error) {
-	var employeeEntity entities.Employee
-
-	if err := er.db.First(&employeeEntity, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return dto.EmployeeDto{}, err
-		}
-		return dto.EmployeeDto{}, err
-	}
-
-	return dto.EmployeeDto{
-		ID:           employeeEntity.ID,
-		Name:         employeeEntity.Name,
-		Phone:        employeeEntity.Phone,
-		Email:        employeeEntity.Email,
-		BranchID:     employeeEntity.BranchID,
-		DepartmentID: employeeEntity.DepartmentID,
-		CreatedAt:    employeeEntity.CreatedAt,
-	}, nil
+func (r *EmployeeRepository) FindByID(ctx context.Context, id uint64) (dto.EmployeeDto, error) {
+	document, err := r.documents.findOne(ctx, bson.M{"id": id})
+	return dto.EmployeeDto(document), err
 }
 
-func (er *EmployeeRepository) FindByName(name string) (dto.EmployeeDto, error) {
-	var employeeEntity entities.Employee
-	nameToLikeSql := "%" + name + "%"
-
-	if err := er.db.Where("name LIKE ?", nameToLikeSql).First(&employeeEntity).Error; err != nil {
-		return dto.EmployeeDto{}, err
-	}
-
-	return dto.EmployeeDto{
-		ID:           employeeEntity.ID,
-		Name:         employeeEntity.Name,
-		Phone:        employeeEntity.Phone,
-		Email:        employeeEntity.Email,
-		BranchID:     employeeEntity.BranchID,
-		DepartmentID: employeeEntity.DepartmentID,
-		CreatedAt:    employeeEntity.CreatedAt,
-	}, nil
+func (r *EmployeeRepository) FindByName(ctx context.Context, name string) (dto.EmployeeDto, error) {
+	document, err := r.documents.findOne(ctx, bson.M{"name": bson.Regex{Pattern: regexp.QuoteMeta(name), Options: "i"}})
+	return dto.EmployeeDto(document), err
 }

@@ -1,10 +1,10 @@
 package controller
 
 import (
+	"net/http"
+
 	"asset-control/src/main/domain/dto"
 	"asset-control/src/main/usecase"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,16 +41,15 @@ func (ctl *PrinterController) CreatePrinterController() gin.HandlerFunc {
 			return
 		}
 
-		if err := ctl.printerUseCase.CreatePrinter(printer); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		created, err := ctl.printerUseCase.CreatePrinter(c.Request.Context(), printer)
+		if err != nil {
+			writeError(c, err)
 			return
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
 			"status": "printer created successfully",
-			"data":   printer,
+			"data":   created,
 		})
 	}
 }
@@ -78,7 +77,7 @@ func (ctl *PrinterController) UpdatePrinterController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "invalid 'id' value",
@@ -95,12 +94,10 @@ func (ctl *PrinterController) UpdatePrinterController() gin.HandlerFunc {
 			return
 		}
 
-		updated, err := ctl.printerUseCase.UpdatePrinter(id, printer)
+		updated, err := ctl.printerUseCase.UpdatePrinter(c.Request.Context(), id, printer)
 
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -121,12 +118,10 @@ func (ctl *PrinterController) UpdatePrinterController() gin.HandlerFunc {
 // @Router       /printers [get]
 func (ctl *PrinterController) GetAllPrintersController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		printers, err := ctl.printerUseCase.GetAllPrinters()
+		printers, err := ctl.printerUseCase.GetAllPrinters(c.Request.Context())
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -158,7 +153,7 @@ func (ctl *PrinterController) FindByIDController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -167,12 +162,10 @@ func (ctl *PrinterController) FindByIDController() gin.HandlerFunc {
 			return
 		}
 
-		printer, err := ctl.printerUseCase.FindByID(id)
+		printer, err := ctl.printerUseCase.FindByID(c.Request.Context(), id)
 
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 

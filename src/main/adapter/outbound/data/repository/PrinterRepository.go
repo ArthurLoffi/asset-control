@@ -1,115 +1,60 @@
 package repository
 
 import (
+	"context"
+
 	"asset-control/src/main/adapter/outbound/data/entities"
 	"asset-control/src/main/domain/dto"
-	"errors"
+	"asset-control/src/main/domain/ports"
 
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type PrinterRepository struct {
-	db *gorm.DB
+	documents documentRepository[entities.Printer]
 }
 
-func NewPrinterRepository(db *gorm.DB) *PrinterRepository {
-	return &PrinterRepository{db: db}
+var _ ports.PrinterPorts = (*PrinterRepository)(nil)
+
+func NewPrinterRepository(db *mongo.Database) *PrinterRepository {
+	return &PrinterRepository{documents: newDocumentRepository[entities.Printer](db, (entities.Printer{}).CollectionName())}
 }
 
-func (pr *PrinterRepository) CreatePrinter(printer dto.CreatePrinterDto) error {
-	printerEntity := entities.Printer{
-		AssetNumber:      printer.AssetNumber,
-		Model:            printer.Model,
-		IP:               printer.IP,
-		MachineCondition: printer.MachineCondition,
-		BranchID:         printer.BranchID,
-		DepartmentsID:    printer.DepartmentsID,
+func printerDocument(input dto.CreatePrinterDto) entities.Printer {
+	return entities.Printer{
+		AssetNumber:      input.AssetNumber,
+		Model:            input.Model,
+		IP:               input.IP,
+		MachineCondition: input.MachineCondition,
+		BranchID:         input.BranchID,
+		DepartmentsID:    input.DepartmentsID,
 	}
-
-	if err := pr.db.Create(&printerEntity).Error; err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func (pr *PrinterRepository) UpdatePrinter(
-	id uint64,
-	printer dto.CreatePrinterDto,
-) (dto.PrinterDto, error) {
-	var printerEntity entities.Printer
-
-	if err := pr.db.First(&printerEntity, id).Error; err != nil {
-		return dto.PrinterDto{}, err
-	}
-
-	printerEntity.AssetNumber = printer.AssetNumber
-	printerEntity.Model = printer.Model
-	printerEntity.IP = printer.IP
-	printerEntity.MachineCondition = printer.MachineCondition
-	printerEntity.BranchID = printer.BranchID
-	printerEntity.DepartmentsID = printer.DepartmentsID
-
-	if err := pr.db.Save(&printerEntity).Error; err != nil {
-		return dto.PrinterDto{}, err
-	}
-
-	return dto.PrinterDto{
-		ID:               printerEntity.ID,
-		AssetNumber:      printerEntity.AssetNumber,
-		Model:            printerEntity.Model,
-		IP:               printerEntity.IP,
-		MachineCondition: printerEntity.MachineCondition,
-		BranchID:         printerEntity.BranchID,
-		DepartmentsID:    printerEntity.DepartmentsID,
-		CreatedAt:        printerEntity.CreatedAt,
-	}, nil
+func (r *PrinterRepository) CreatePrinter(ctx context.Context, input dto.CreatePrinterDto) (dto.PrinterDto, error) {
+	document, err := r.documents.create(ctx, printerDocument(input))
+	return dto.PrinterDto(document), err
 }
 
-func (pr *PrinterRepository) GetAllPrinters() ([]dto.PrinterDto, error) {
-	var printerEntities []entities.Printer
+func (r *PrinterRepository) UpdatePrinter(ctx context.Context, id uint64, input dto.CreatePrinterDto) (dto.PrinterDto, error) {
+	document, err := r.documents.update(ctx, id, printerDocument(input))
+	return dto.PrinterDto(document), err
+}
 
-	if err := pr.db.Find(&printerEntities).Error; err != nil {
+func (r *PrinterRepository) GetAllPrinters(ctx context.Context) ([]dto.PrinterDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{})
+	if err != nil {
 		return nil, err
 	}
-
-	printers := make([]dto.PrinterDto, 0, len(printerEntities))
-
-	for _, printerEntity := range printerEntities {
-		printers = append(printers, dto.PrinterDto{
-			ID:               printerEntity.ID,
-			AssetNumber:      printerEntity.AssetNumber,
-			Model:            printerEntity.Model,
-			IP:               printerEntity.IP,
-			MachineCondition: printerEntity.MachineCondition,
-			BranchID:         printerEntity.BranchID,
-			DepartmentsID:    printerEntity.DepartmentsID,
-			CreatedAt:        printerEntity.CreatedAt,
-		})
+	result := make([]dto.PrinterDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.PrinterDto(document))
 	}
-
-	return printers, nil
+	return result, nil
 }
 
-func (pr *PrinterRepository) FindByID(id uint64) (dto.PrinterDto, error) {
-	var printerEntity entities.Printer
-
-	if err := pr.db.First(&printerEntity, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return dto.PrinterDto{}, err
-		}
-
-		return dto.PrinterDto{}, err
-	}
-
-	return dto.PrinterDto{
-		ID:               printerEntity.ID,
-		AssetNumber:      printerEntity.AssetNumber,
-		Model:            printerEntity.Model,
-		IP:               printerEntity.IP,
-		MachineCondition: printerEntity.MachineCondition,
-		BranchID:         printerEntity.BranchID,
-		DepartmentsID:    printerEntity.DepartmentsID,
-		CreatedAt:        printerEntity.CreatedAt,
-	}, nil
+func (r *PrinterRepository) FindByID(ctx context.Context, id uint64) (dto.PrinterDto, error) {
+	document, err := r.documents.findOne(ctx, bson.M{"id": id})
+	return dto.PrinterDto(document), err
 }

@@ -1,10 +1,10 @@
 package controller
 
 import (
+	"net/http"
+
 	"asset-control/src/main/domain/dto"
 	"asset-control/src/main/usecase"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,16 +41,15 @@ func (ctl *MonitorController) CreateMonitorController() gin.HandlerFunc {
 			return
 		}
 
-		if err := ctl.monitorUseCase.CreateMonitor(monitor); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		created, err := ctl.monitorUseCase.CreateMonitor(c.Request.Context(), monitor)
+		if err != nil {
+			writeError(c, err)
 			return
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
 			"status": "monitor created successfully",
-			"data":   monitor,
+			"data":   created,
 		})
 	}
 }
@@ -78,7 +77,7 @@ func (ctl *MonitorController) UpdateMonitorController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "invalid 'id' value",
@@ -95,11 +94,9 @@ func (ctl *MonitorController) UpdateMonitorController() gin.HandlerFunc {
 			return
 		}
 
-		updated, err := ctl.monitorUseCase.UpdateMonitor(id, monitor)
+		updated, err := ctl.monitorUseCase.UpdateMonitor(c.Request.Context(), id, monitor)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -120,12 +117,10 @@ func (ctl *MonitorController) UpdateMonitorController() gin.HandlerFunc {
 // @Router       /monitors [get]
 func (ctl *MonitorController) GetAllMonitorsController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		monitors, err := ctl.monitorUseCase.GetAllMonitors()
+		monitors, err := ctl.monitorUseCase.GetAllMonitors(c.Request.Context())
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -157,7 +152,7 @@ func (ctl *MonitorController) FindByIDController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "invalid 'id' value",
@@ -165,12 +160,10 @@ func (ctl *MonitorController) FindByIDController() gin.HandlerFunc {
 			return
 		}
 
-		monitor, err := ctl.monitorUseCase.FindByID(id)
+		monitor, err := ctl.monitorUseCase.FindByID(c.Request.Context(), id)
 
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -190,7 +183,7 @@ func (ctl *MonitorController) FindByIDController() gin.HandlerFunc {
 // @Success      200  {object}  map[string]interface{}  "Monitores encontrados com sucesso"
 // @Failure      400  {object}  map[string]string  "ID do funcionário inválido ou não informado"
 // @Failure      404  {object}  map[string]string  "Nenhum monitor encontrado para o funcionário"
-// @Router       /monitors/employee [get]
+// @Router       /monitors/employee_id [get]
 func (ctl *MonitorController) FindByEmployeeIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		employeeIDParam := c.Query("employee_id")
@@ -202,7 +195,7 @@ func (ctl *MonitorController) FindByEmployeeIDController() gin.HandlerFunc {
 			return
 		}
 
-		employeeID, err := strconv.ParseUint(employeeIDParam, 10, 64)
+		employeeID, err := parseID(employeeIDParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "invalid 'employee_id' value",
@@ -210,12 +203,10 @@ func (ctl *MonitorController) FindByEmployeeIDController() gin.HandlerFunc {
 			return
 		}
 
-		monitors, err := ctl.monitorUseCase.FindByEmployeeID(employeeID)
+		monitors, err := ctl.monitorUseCase.FindByEmployeeID(c.Request.Context(), employeeID)
 
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 

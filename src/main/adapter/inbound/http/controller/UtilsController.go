@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"asset-control/src/main/usecase"
 	"net/http"
-	"strconv"
+
+	"asset-control/src/main/usecase"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,17 +37,15 @@ func (uc *UtilsController) BranchIdToDescription() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
 			return
 		}
 
-		description, err := uc.utilsUseCase.BranchIdToDescription(id)
+		description, err := uc.utilsUseCase.BranchIdToDescription(c.Request.Context(), id)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -79,17 +77,15 @@ func (uc *UtilsController) DepartmentIdToDescription() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
 			return
 		}
 
-		description, err := uc.utilsUseCase.DepartmentIdToDescription(id)
+		description, err := uc.utilsUseCase.DepartmentIdToDescription(c.Request.Context(), id)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
