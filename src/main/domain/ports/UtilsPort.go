@@ -1,7 +1,9 @@
 package ports
 
-type UtilsPort interface {
-	BranchIdToDescription(id uint64) (string, error)
+import "context"
 
-	DepartmentIdToDescription(id uint64) (string, error)
+type UtilsPort interface {
+	BranchIdToDescription(ctx context.Context, id uint64) (string, error)
+
+	DepartmentIdToDescription(ctx context.Context, id uint64) (string, error)
 }

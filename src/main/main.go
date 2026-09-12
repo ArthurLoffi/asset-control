@@ -1,15 +1,23 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"log"
+	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"asset-control/src/main/adapter/inbound/http/controller"
 	"asset-control/src/main/adapter/inbound/http/routes"
 	_ "asset-control/src/main/adapter/inbound/http/swagger"
 	"asset-control/src/main/adapter/outbound/data/database"
 	"asset-control/src/main/adapter/outbound/data/repository"
 	"asset-control/src/main/usecase"
-	"log"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // @title           Asset control API
@@ -25,11 +33,57 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
-	db, err := database.NewMySQLConnection()
-	if err != nil {
+	if err := run(); err != nil {
 		log.Fatal(err)
 	}
+}
 
+func run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	cfg, err := database.ConfigFromEnv()
+	if err != nil {
+		return err
+	}
+	db, err := database.Connect(ctx, cfg)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := database.Disconnect(db.Client()); err != nil {
+			log.Printf("disconnect MongoDB: %v", err)
+		}
+	}()
+	schemaCtx, cancel := context.WithTimeout(ctx, cfg.Timeout)
+	err = database.EnsureSchema(schemaCtx, db)
+	cancel()
+	if err != nil {
+		return err
+	}
+
+	r := newRouter(db)
+
+	server := &http.Server{Addr: ":8080", Handler: r, ReadHeaderTimeout: 5 * time.Second}
+	serverErrors := make(chan error, 1)
+	go func() { serverErrors <- server.ListenAndServe() }()
+	select {
+	case err := <-serverErrors:
+		if errors.Is(err, http.ErrServerClosed) {
+			return nil
+		}
+		return err
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			_ = server.Close()
+			return err
+		}
+		return nil
+	}
+}
+
+func newRouter(db *mongo.Database) *gin.Engine {
 	employeeRepository := repository.NewEmployeeRepository(db)
 	employeeUseCase := usecase.NewEmployeeUseCase(employeeRepository)
 	employeeController := controller.NewEmployeeController(employeeUseCase)
@@ -55,8 +109,6 @@ func main() {
 	utilsController := controller.NewUtilsController(utilsUseCase)
 
 	r := gin.Default()
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
 
 	routes.Routes(
 		r,
@@ -68,8 +120,5 @@ func main() {
 		utilsController,
 	)
 
-	err = r.Run(":8080")
-	if err != nil {
-		log.Fatal(err)
-	}
+	return r
 }

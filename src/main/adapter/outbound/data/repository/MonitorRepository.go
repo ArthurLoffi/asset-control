@@ -1,154 +1,74 @@
 package repository
 
 import (
+	"context"
+
 	"asset-control/src/main/adapter/outbound/data/entities"
 	"asset-control/src/main/domain/dto"
-	"errors"
+	"asset-control/src/main/domain/ports"
 
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type MonitorRepository struct {
-	db *gorm.DB
+	documents documentRepository[entities.Monitor]
 }
 
-func NewMonitorRepository(db *gorm.DB) *MonitorRepository {
-	return &MonitorRepository{db: db}
+var _ ports.MonitorPorts = (*MonitorRepository)(nil)
+
+func NewMonitorRepository(db *mongo.Database) *MonitorRepository {
+	return &MonitorRepository{documents: newDocumentRepository[entities.Monitor](db, (entities.Monitor{}).CollectionName())}
 }
 
-func (mr *MonitorRepository) CreateMonitor(monitor dto.CreateMonitorDto) error {
-	monitorEntity := entities.Monitor{
-		HasMonitor:       monitor.HasMonitor,
-		AssetNumber:      monitor.AssetNumber,
-		Brand:            monitor.Brand,
-		Model:            monitor.Model,
-		SerialNumber:     monitor.SerialNumber,
-		MonitorCondition: monitor.MonitorCondition,
-		Situation:        monitor.Situation,
-		EmployeeID:       monitor.EmployeeID,
+func monitorDocument(input dto.CreateMonitorDto) entities.Monitor {
+	return entities.Monitor{
+		HasMonitor:       input.HasMonitor,
+		AssetNumber:      input.AssetNumber,
+		Brand:            input.Brand,
+		Model:            input.Model,
+		SerialNumber:     input.SerialNumber,
+		MonitorCondition: input.MonitorCondition,
+		Situation:        input.Situation,
+		EmployeeID:       input.EmployeeID,
 	}
-
-	if err := mr.db.Create(&monitorEntity).Error; err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func (mr *MonitorRepository) UpdateMonitor(
-	id uint64,
-	monitor dto.CreateMonitorDto,
-) (dto.MonitorDto, error) {
-	var monitorEntity entities.Monitor
-
-	if err := mr.db.First(&monitorEntity, id).Error; err != nil {
-		return dto.MonitorDto{}, err
-	}
-
-	monitorEntity.HasMonitor = monitor.HasMonitor
-	monitorEntity.AssetNumber = monitor.AssetNumber
-	monitorEntity.Brand = monitor.Brand
-	monitorEntity.Model = monitor.Model
-	monitorEntity.SerialNumber = monitor.SerialNumber
-	monitorEntity.MonitorCondition = monitor.MonitorCondition
-	monitorEntity.Situation = monitor.Situation
-	monitorEntity.EmployeeID = monitor.EmployeeID
-
-	if err := mr.db.Save(&monitorEntity).Error; err != nil {
-		return dto.MonitorDto{}, err
-	}
-
-	return dto.MonitorDto{
-		ID:               monitorEntity.ID,
-		HasMonitor:       monitorEntity.HasMonitor,
-		AssetNumber:      monitorEntity.AssetNumber,
-		Brand:            monitorEntity.Brand,
-		Model:            monitorEntity.Model,
-		SerialNumber:     monitorEntity.SerialNumber,
-		MonitorCondition: monitorEntity.MonitorCondition,
-		Situation:        monitorEntity.Situation,
-		EmployeeID:       monitorEntity.EmployeeID,
-		CreatedAt:        monitorEntity.CreatedAt,
-	}, nil
+func (r *MonitorRepository) CreateMonitor(ctx context.Context, input dto.CreateMonitorDto) (dto.MonitorDto, error) {
+	document, err := r.documents.create(ctx, monitorDocument(input))
+	return dto.MonitorDto(document), err
 }
 
-func (mr *MonitorRepository) GetAllMonitors() ([]dto.MonitorDto, error) {
-	var monitorEntities []entities.Monitor
+func (r *MonitorRepository) UpdateMonitor(ctx context.Context, id uint64, input dto.CreateMonitorDto) (dto.MonitorDto, error) {
+	document, err := r.documents.update(ctx, id, monitorDocument(input))
+	return dto.MonitorDto(document), err
+}
 
-	if err := mr.db.Find(&monitorEntities).Error; err != nil {
+func (r *MonitorRepository) GetAllMonitors(ctx context.Context) ([]dto.MonitorDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{})
+	if err != nil {
 		return nil, err
 	}
-
-	monitors := make([]dto.MonitorDto, 0, len(monitorEntities))
-
-	for _, monitorEntity := range monitorEntities {
-		monitors = append(monitors, dto.MonitorDto{
-			ID:               monitorEntity.ID,
-			HasMonitor:       monitorEntity.HasMonitor,
-			AssetNumber:      monitorEntity.AssetNumber,
-			Brand:            monitorEntity.Brand,
-			Model:            monitorEntity.Model,
-			SerialNumber:     monitorEntity.SerialNumber,
-			MonitorCondition: monitorEntity.MonitorCondition,
-			Situation:        monitorEntity.Situation,
-			EmployeeID:       monitorEntity.EmployeeID,
-			CreatedAt:        monitorEntity.CreatedAt,
-		})
+	result := make([]dto.MonitorDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.MonitorDto(document))
 	}
-
-	return monitors, nil
+	return result, nil
 }
 
-func (mr *MonitorRepository) FindByID(id uint64) (dto.MonitorDto, error) {
-	var monitorEntity entities.Monitor
-
-	if err := mr.db.First(&monitorEntity, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return dto.MonitorDto{}, err
-		}
-
-		return dto.MonitorDto{}, err
-	}
-
-	return dto.MonitorDto{
-		ID:               monitorEntity.ID,
-		HasMonitor:       monitorEntity.HasMonitor,
-		AssetNumber:      monitorEntity.AssetNumber,
-		Brand:            monitorEntity.Brand,
-		Model:            monitorEntity.Model,
-		SerialNumber:     monitorEntity.SerialNumber,
-		MonitorCondition: monitorEntity.MonitorCondition,
-		Situation:        monitorEntity.Situation,
-		EmployeeID:       monitorEntity.EmployeeID,
-		CreatedAt:        monitorEntity.CreatedAt,
-	}, nil
+func (r *MonitorRepository) FindByID(ctx context.Context, id uint64) (dto.MonitorDto, error) {
+	document, err := r.documents.findOne(ctx, bson.M{"id": id})
+	return dto.MonitorDto(document), err
 }
 
-func (mr *MonitorRepository) FindByEmployeeID(employeeID uint64) ([]dto.MonitorDto, error) {
-	var monitorEntities []entities.Monitor
-
-	if err := mr.db.
-		Where("employee_id = ?", employeeID).
-		Find(&monitorEntities).Error; err != nil {
+func (r *MonitorRepository) FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.MonitorDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{"employee_id": employeeID})
+	if err != nil {
 		return nil, err
 	}
-
-	monitors := make([]dto.MonitorDto, 0, len(monitorEntities))
-
-	for _, monitorEntity := range monitorEntities {
-		monitors = append(monitors, dto.MonitorDto{
-			ID:               monitorEntity.ID,
-			HasMonitor:       monitorEntity.HasMonitor,
-			AssetNumber:      monitorEntity.AssetNumber,
-			Brand:            monitorEntity.Brand,
-			Model:            monitorEntity.Model,
-			SerialNumber:     monitorEntity.SerialNumber,
-			MonitorCondition: monitorEntity.MonitorCondition,
-			Situation:        monitorEntity.Situation,
-			EmployeeID:       monitorEntity.EmployeeID,
-			CreatedAt:        monitorEntity.CreatedAt,
-		})
+	result := make([]dto.MonitorDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.MonitorDto(document))
 	}
-
-	return monitors, nil
+	return result, nil
 }

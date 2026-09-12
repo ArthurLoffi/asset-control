@@ -1,5 +1,7 @@
 package usecase
 
+import "context"
+
 import "asset-control/src/main/domain/ports"
 
 type UtilsUseCase struct {
@@ -12,10 +14,10 @@ func NewUtilsUseCase(utilsPorts ports.UtilsPort) *UtilsUseCase {
 	}
 }
 
-func (uuc *UtilsUseCase) BranchIdToDescription(id uint64) (string, error) {
-	return uuc.utilsPorts.BranchIdToDescription(id)
+func (uuc *UtilsUseCase) BranchIdToDescription(ctx context.Context, id uint64) (string, error) {
+	return uuc.utilsPorts.BranchIdToDescription(ctx, id)
 }
 
-func (uuc *UtilsUseCase) DepartmentIdToDescription(id uint64) (string, error) {
-	return uuc.utilsPorts.DepartmentIdToDescription(id)
+func (uuc *UtilsUseCase) DepartmentIdToDescription(ctx context.Context, id uint64) (string, error) {
+	return uuc.utilsPorts.DepartmentIdToDescription(ctx, id)
 }

@@ -633,7 +633,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/monitors/employee": {
+        "/monitors/employee_id": {
             "get": {
                 "description": "Retorna todos os monitores associados ao ID de um funcionário.",
                 "produces": [
@@ -1250,19 +1250,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "branch_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 9223372036854776000
                 },
                 "department_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 9223372036854776000
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 20
                 }
             }
         },
@@ -1276,10 +1281,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "asset_number": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "employee_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 9223372036854776000
                 },
                 "has_keyboard": {
                     "type": "boolean"
@@ -1288,22 +1295,28 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "machine_condition": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "model": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "serial_number": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "situation": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "user": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 }
             }
         },
@@ -1314,28 +1327,35 @@ const docTemplate = `{
             ],
             "properties": {
                 "asset_number": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 9223372036854776000
                 },
                 "brand": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "employee_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 9223372036854776000
                 },
                 "has_monitor": {
                     "type": "boolean"
                 },
                 "model": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "monitor_condition": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "serial_number": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "situation": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 }
             }
         },
@@ -1348,25 +1368,31 @@ const docTemplate = `{
             ],
             "properties": {
                 "employee_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 9223372036854776000
                 },
                 "equipament": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "has_chip": {
                     "type": "boolean"
                 },
                 "imei": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "model": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "serial_number": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "situation": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 }
             }
         },
@@ -1381,22 +1407,27 @@ const docTemplate = `{
             ],
             "properties": {
                 "asset_number": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 9223372036854776000
                 },
                 "branch_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 9223372036854776000
                 },
                 "departments_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 9223372036854776000
                 },
                 "ip": {
                     "type": "string"
                 },
                 "machine_condition": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "model": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 }
             }
         }

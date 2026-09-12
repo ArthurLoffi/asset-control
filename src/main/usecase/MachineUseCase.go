@@ -1,37 +1,40 @@
 package usecase
 
 import (
+	"context"
+
 	"asset-control/src/main/domain/dto"
 	"asset-control/src/main/domain/ports"
 )
 
-type MachineUseCase struct {
-	machinePorts ports.MachinePorts
+type MachineUseCase struct{ repository ports.MachinePorts }
+
+func NewMachineUseCase(repository ports.MachinePorts) *MachineUseCase {
+	return &MachineUseCase{repository: repository}
 }
 
-func NewMachineUseCase(machinePorts ports.MachinePorts) *MachineUseCase {
-	return &MachineUseCase{
-		machinePorts: machinePorts,
+func (uc *MachineUseCase) CreateMachine(ctx context.Context, input dto.CreateMachineDto) (dto.MachineDto, error) {
+	if err := input.Validate(); err != nil {
+		return dto.MachineDto{}, err
 	}
+	return uc.repository.CreateMachine(ctx, input)
 }
 
-func (uc *MachineUseCase) CreateMachine(machine dto.MachineDto) error {
-	return uc.machinePorts.CreateMachine(machine)
+func (uc *MachineUseCase) UpdateMachine(ctx context.Context, id uint64, input dto.CreateMachineDto) (dto.MachineDto, error) {
+	if err := input.Validate(); err != nil {
+		return dto.MachineDto{}, err
+	}
+	return uc.repository.UpdateMachine(ctx, id, input)
 }
 
-func (uc *MachineUseCase) UpdateMachine(id uint64, machine dto.MachineDto) (dto.MachineDto, error) {
-	return uc.machinePorts.UpdateMachine(id, machine)
+func (uc *MachineUseCase) GetAllMachines(ctx context.Context) ([]dto.MachineDto, error) {
+	return uc.repository.GetAllMachines(ctx)
 }
 
-func (uc *MachineUseCase) GetAllMachines() ([]dto.MachineDto, error) {
-	return uc.machinePorts.GetAllMachines()
+func (uc *MachineUseCase) FindByID(ctx context.Context, id uint64) (dto.MachineDto, error) {
+	return uc.repository.FindByID(ctx, id)
 }
 
-func (uc *MachineUseCase) FindByID(id uint64) (dto.MachineDto, error) {
-
-	return uc.machinePorts.FindByID(id)
-}
-
-func (uc *MachineUseCase) FindByEmployeeID(employeeId uint64) ([]dto.MachineDto, error) {
-	return uc.machinePorts.FindByEmployeeID(employeeId)
+func (uc *MachineUseCase) FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.MachineDto, error) {
+	return uc.repository.FindByEmployeeID(ctx, employeeID)
 }

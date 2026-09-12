@@ -1,10 +1,10 @@
 package controller
 
 import (
+	"net/http"
+
 	"asset-control/src/main/domain/dto"
 	"asset-control/src/main/usecase"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,16 +41,15 @@ func (ctl *PhoneController) CreatePhoneController() gin.HandlerFunc {
 			return
 		}
 
-		if err := ctl.phoneUseCase.CreatePhone(phone); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		created, err := ctl.phoneUseCase.CreatePhone(c.Request.Context(), phone)
+		if err != nil {
+			writeError(c, err)
 			return
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
 			"status": "created",
-			"data":   phone,
+			"data":   created,
 		})
 	}
 }
@@ -75,7 +74,7 @@ func (ctl *PhoneController) UpdatePhoneController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
 			return
@@ -87,9 +86,9 @@ func (ctl *PhoneController) UpdatePhoneController() gin.HandlerFunc {
 			return
 		}
 
-		updated, err := ctl.phoneUseCase.UpdatePhone(id, phone)
+		updated, err := ctl.phoneUseCase.UpdatePhone(c.Request.Context(), id, phone)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			writeError(c, err)
 			return
 		}
 
@@ -110,11 +109,9 @@ func (ctl *PhoneController) UpdatePhoneController() gin.HandlerFunc {
 // @Router /phones [get]
 func (ctl *PhoneController) GetAllPhonesController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		phones, err := ctl.phoneUseCase.GetAllPhones()
+		phones, err := ctl.phoneUseCase.GetAllPhones(c.Request.Context())
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -143,17 +140,15 @@ func (ctl *PhoneController) FindByIDController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
 			return
 		}
 
-		phone, err := ctl.phoneUseCase.FindByID(id)
+		phone, err := ctl.phoneUseCase.FindByID(c.Request.Context(), id)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -182,17 +177,15 @@ func (ctl *PhoneController) FindByEmployeeIDController() gin.HandlerFunc {
 			return
 		}
 
-		employeeId, err := strconv.ParseUint(idParam, 10, 64)
+		employeeId, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'employee_id' value"})
 			return
 		}
 
-		phones, err := ctl.phoneUseCase.FindByEmployeeID(employeeId)
+		phones, err := ctl.phoneUseCase.FindByEmployeeID(c.Request.Context(), employeeId)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 

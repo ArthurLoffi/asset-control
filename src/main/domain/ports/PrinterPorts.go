@@ -1,13 +1,14 @@
 package ports
 
-import "asset-control/src/main/domain/dto"
+import (
+	"context"
+
+	"asset-control/src/main/domain/dto"
+)
 
 type PrinterPorts interface {
-	CreatePrinter(printer dto.CreatePrinterDto) error
-
-	UpdatePrinter(id uint64, printer dto.CreatePrinterDto) (dto.PrinterDto, error)
-
-	GetAllPrinters() ([]dto.PrinterDto, error)
-
-	FindByID(id uint64) (dto.PrinterDto, error)
+	CreatePrinter(ctx context.Context, input dto.CreatePrinterDto) (dto.PrinterDto, error)
+	UpdatePrinter(ctx context.Context, id uint64, input dto.CreatePrinterDto) (dto.PrinterDto, error)
+	GetAllPrinters(ctx context.Context) ([]dto.PrinterDto, error)
+	FindByID(ctx context.Context, id uint64) (dto.PrinterDto, error)
 }

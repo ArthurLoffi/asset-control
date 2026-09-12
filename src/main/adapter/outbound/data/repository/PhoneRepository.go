@@ -1,148 +1,73 @@
 package repository
 
 import (
+	"context"
+
 	"asset-control/src/main/adapter/outbound/data/entities"
 	"asset-control/src/main/domain/dto"
-	"errors"
+	"asset-control/src/main/domain/ports"
 
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type PhoneRepository struct {
-	db *gorm.DB
+	documents documentRepository[entities.Phone]
 }
 
-func NewPhoneRepository(db *gorm.DB) *PhoneRepository {
-	return &PhoneRepository{db: db}
+var _ ports.PhonePorts = (*PhoneRepository)(nil)
+
+func NewPhoneRepository(db *mongo.Database) *PhoneRepository {
+	return &PhoneRepository{documents: newDocumentRepository[entities.Phone](db, (entities.Phone{}).CollectionName())}
 }
 
-func (pr *PhoneRepository) CreatePhone(phone dto.CreatePhoneDto) error {
-	phoneEntity := entities.Phone{
-		Equipament:   phone.Equipament,
-		Model:        phone.Model,
-		IMEI:         phone.IMEI,
-		SerialNumber: phone.SerialNumber,
-		HasChip:      phone.HasChip,
-		Situation:    phone.Situation,
-		EmployeeID:   phone.EmployeeID,
+func phoneDocument(input dto.CreatePhoneDto) entities.Phone {
+	return entities.Phone{
+		Equipament:   input.Equipament,
+		Model:        input.Model,
+		IMEI:         input.IMEI,
+		SerialNumber: input.SerialNumber,
+		HasChip:      input.HasChip,
+		Situation:    input.Situation,
+		EmployeeID:   input.EmployeeID,
 	}
-
-	if err := pr.db.Create(&phoneEntity).Error; err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func (pr *PhoneRepository) UpdatePhone(
-	id uint64,
-	phone dto.CreatePhoneDto,
-) (dto.PhoneDto, error) {
-	var phoneEntity entities.Phone
-
-	if err := pr.db.First(&phoneEntity, id).Error; err != nil {
-		return dto.PhoneDto{}, err
-	}
-
-	phoneEntity.Equipament = phone.Equipament
-	phoneEntity.Model = phone.Model
-	phoneEntity.IMEI = phone.IMEI
-	phoneEntity.SerialNumber = phone.SerialNumber
-	phoneEntity.HasChip = phone.HasChip
-	phoneEntity.Situation = phone.Situation
-	phoneEntity.EmployeeID = phone.EmployeeID
-
-	if err := pr.db.Save(&phoneEntity).Error; err != nil {
-		return dto.PhoneDto{}, err
-	}
-
-	return dto.PhoneDto{
-		ID:           phoneEntity.ID,
-		Equipament:   phoneEntity.Equipament,
-		Model:        phoneEntity.Model,
-		IMEI:         phoneEntity.IMEI,
-		SerialNumber: phoneEntity.SerialNumber,
-		HasChip:      phoneEntity.HasChip,
-		Situation:    phoneEntity.Situation,
-		EmployeeID:   phoneEntity.EmployeeID,
-		CreatedAt:    phoneEntity.CreatedAt,
-	}, nil
+func (r *PhoneRepository) CreatePhone(ctx context.Context, input dto.CreatePhoneDto) (dto.PhoneDto, error) {
+	document, err := r.documents.create(ctx, phoneDocument(input))
+	return dto.PhoneDto(document), err
 }
 
-func (pr *PhoneRepository) GetAllPhones() ([]dto.PhoneDto, error) {
-	var phoneEntities []entities.Phone
+func (r *PhoneRepository) UpdatePhone(ctx context.Context, id uint64, input dto.CreatePhoneDto) (dto.PhoneDto, error) {
+	document, err := r.documents.update(ctx, id, phoneDocument(input))
+	return dto.PhoneDto(document), err
+}
 
-	if err := pr.db.Find(&phoneEntities).Error; err != nil {
+func (r *PhoneRepository) GetAllPhones(ctx context.Context) ([]dto.PhoneDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{})
+	if err != nil {
 		return nil, err
 	}
-
-	phones := make([]dto.PhoneDto, 0, len(phoneEntities))
-
-	for _, phoneEntity := range phoneEntities {
-		phones = append(phones, dto.PhoneDto{
-			ID:           phoneEntity.ID,
-			Equipament:   phoneEntity.Equipament,
-			Model:        phoneEntity.Model,
-			IMEI:         phoneEntity.IMEI,
-			SerialNumber: phoneEntity.SerialNumber,
-			HasChip:      phoneEntity.HasChip,
-			Situation:    phoneEntity.Situation,
-			EmployeeID:   phoneEntity.EmployeeID,
-			CreatedAt:    phoneEntity.CreatedAt,
-		})
+	result := make([]dto.PhoneDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.PhoneDto(document))
 	}
-
-	return phones, nil
+	return result, nil
 }
 
-func (pr *PhoneRepository) FindByID(id uint64) (dto.PhoneDto, error) {
-	var phoneEntity entities.Phone
-
-	if err := pr.db.First(&phoneEntity, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return dto.PhoneDto{}, err
-		}
-
-		return dto.PhoneDto{}, err
-	}
-
-	return dto.PhoneDto{
-		ID:           phoneEntity.ID,
-		Equipament:   phoneEntity.Equipament,
-		Model:        phoneEntity.Model,
-		IMEI:         phoneEntity.IMEI,
-		SerialNumber: phoneEntity.SerialNumber,
-		HasChip:      phoneEntity.HasChip,
-		Situation:    phoneEntity.Situation,
-		EmployeeID:   phoneEntity.EmployeeID,
-		CreatedAt:    phoneEntity.CreatedAt,
-	}, nil
+func (r *PhoneRepository) FindByID(ctx context.Context, id uint64) (dto.PhoneDto, error) {
+	document, err := r.documents.findOne(ctx, bson.M{"id": id})
+	return dto.PhoneDto(document), err
 }
 
-func (pr *PhoneRepository) FindByEmployeeID(employeeID uint64) ([]dto.PhoneDto, error) {
-	var phoneEntities []entities.Phone
-
-	if err := pr.db.
-		Where("employee_id = ?", employeeID).
-		Find(&phoneEntities).Error; err != nil {
+func (r *PhoneRepository) FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.PhoneDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{"employee_id": employeeID})
+	if err != nil {
 		return nil, err
 	}
-
-	phones := make([]dto.PhoneDto, 0, len(phoneEntities))
-
-	for _, phoneEntity := range phoneEntities {
-		phones = append(phones, dto.PhoneDto{
-			ID:           phoneEntity.ID,
-			Equipament:   phoneEntity.Equipament,
-			Model:        phoneEntity.Model,
-			IMEI:         phoneEntity.IMEI,
-			SerialNumber: phoneEntity.SerialNumber,
-			HasChip:      phoneEntity.HasChip,
-			Situation:    phoneEntity.Situation,
-			EmployeeID:   phoneEntity.EmployeeID,
-			CreatedAt:    phoneEntity.CreatedAt,
-		})
+	result := make([]dto.PhoneDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.PhoneDto(document))
 	}
-
-	return phones, nil
+	return result, nil
 }

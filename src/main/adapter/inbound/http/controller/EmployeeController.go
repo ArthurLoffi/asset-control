@@ -1,10 +1,11 @@
 package controller
 
 import (
+	"net/http"
+	"strings"
+
 	"asset-control/src/main/domain/dto"
 	"asset-control/src/main/usecase"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +33,7 @@ func NewEmployeeController(employeeUseCase *usecase.EmployeeUseCase) *EmployeeCo
 // @Router       /employees [post]
 func (ctl *EmployeeController) CreateEmployeeController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var employee dto.EmployeeDto
+		var employee dto.CreateEmployeeDto
 
 		if err := c.ShouldBindJSON(&employee); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -41,16 +42,15 @@ func (ctl *EmployeeController) CreateEmployeeController() gin.HandlerFunc {
 			return
 		}
 
-		if err := ctl.employeeUseCase.CreateEmployee(employee); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		created, err := ctl.employeeUseCase.CreateEmployee(c.Request.Context(), employee)
+		if err != nil {
+			writeError(c, err)
 			return
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
 			"status": "created",
-			"data":   employee,
+			"data":   created,
 		})
 	}
 }
@@ -75,21 +75,21 @@ func (ctl *EmployeeController) UpdateEmployeeController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
 			return
 		}
 
-		var employee dto.EmployeeDto
+		var employee dto.CreateEmployeeDto
 		if err := c.ShouldBindJSON(&employee); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		updated, err := ctl.employeeUseCase.UpdateEmployee(id, employee)
+		updated, err := ctl.employeeUseCase.UpdateEmployee(c.Request.Context(), id, employee)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			writeError(c, err)
 			return
 		}
 
@@ -110,11 +110,9 @@ func (ctl *EmployeeController) UpdateEmployeeController() gin.HandlerFunc {
 // @Router       /employees [get]
 func (ctl *EmployeeController) GetAllEmployeesController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		employees, err := ctl.employeeUseCase.GetAllEmployees()
+		employees, err := ctl.employeeUseCase.GetAllEmployees(c.Request.Context())
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -137,20 +135,19 @@ func (ctl *EmployeeController) GetAllEmployeesController() gin.HandlerFunc {
 // @Router       /employees/name [get]
 func (ctl *EmployeeController) FindByNameController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		name := c.Query("name")
+		name := strings.TrimSpace(c.Query("name"))
 
 		if name == "" {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "name is required",
 			})
+			return
 		}
 
-		employee, err := ctl.employeeUseCase.FindByName(name)
+		employee, err := ctl.employeeUseCase.FindByName(c.Request.Context(), name)
 
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -179,18 +176,16 @@ func (ctl *EmployeeController) FindByIDController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
 			return
 		}
 
-		employee, err := ctl.employeeUseCase.FindByID(id)
+		employee, err := ctl.employeeUseCase.FindByID(c.Request.Context(), id)
 
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 

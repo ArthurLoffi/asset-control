@@ -1,10 +1,10 @@
 package controller
 
 import (
+	"net/http"
+
 	"asset-control/src/main/domain/dto"
 	"asset-control/src/main/usecase"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +32,7 @@ func NewMachineController(machineUseCase *usecase.MachineUseCase) *MachineContro
 // @Router       /machines [post]
 func (ctl *MachineController) CreateMachineController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var machine dto.MachineDto
+		var machine dto.CreateMachineDto
 
 		if err := c.ShouldBindJSON(&machine); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -41,16 +41,15 @@ func (ctl *MachineController) CreateMachineController() gin.HandlerFunc {
 			return
 		}
 
-		if err := ctl.machineUseCase.CreateMachine(machine); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		created, err := ctl.machineUseCase.CreateMachine(c.Request.Context(), machine)
+		if err != nil {
+			writeError(c, err)
 			return
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
 			"status": "created",
-			"data":   machine,
+			"data":   created,
 		})
 	}
 }
@@ -75,21 +74,21 @@ func (ctl *MachineController) UpdateMachineController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
 			return
 		}
 
-		var machine dto.MachineDto
+		var machine dto.CreateMachineDto
 		if err := c.ShouldBindJSON(&machine); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		updated, err := ctl.machineUseCase.UpdateMachine(id, machine)
+		updated, err := ctl.machineUseCase.UpdateMachine(c.Request.Context(), id, machine)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			writeError(c, err)
 			return
 		}
 
@@ -110,11 +109,9 @@ func (ctl *MachineController) UpdateMachineController() gin.HandlerFunc {
 // @Router       /machines [get]
 func (ctl *MachineController) GetAllMachinesController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		machines, err := ctl.machineUseCase.GetAllMachines()
+		machines, err := ctl.machineUseCase.GetAllMachines(c.Request.Context())
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -143,17 +140,15 @@ func (ctl *MachineController) FindByIDController() gin.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.ParseUint(idParam, 10, 64)
+		id, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
 			return
 		}
 
-		machine, err := ctl.machineUseCase.FindByID(id)
+		machine, err := ctl.machineUseCase.FindByID(c.Request.Context(), id)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
@@ -182,17 +177,15 @@ func (ctl *MachineController) FindByEmployeeIDController() gin.HandlerFunc {
 			return
 		}
 
-		employeeId, err := strconv.ParseUint(idParam, 10, 64)
+		employeeId, err := parseID(idParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'employee_id' value"})
 			return
 		}
 
-		machine, err := ctl.machineUseCase.FindByEmployeeID(employeeId)
+		machine, err := ctl.machineUseCase.FindByEmployeeID(c.Request.Context(), employeeId)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			writeError(c, err)
 			return
 		}
 
