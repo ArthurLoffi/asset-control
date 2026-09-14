@@ -16,8 +16,20 @@ func Routes(
 	monitorController *controller.MonitorController,
 	printerController *controller.PrinterController,
 	utilsController *controller.UtilsController,
+	emailController *controller.EmailController,
 ) {
 	api := r.Group("/api")
+
+	{
+		e := api.Group("/emails")
+		{
+			e.GET("", emailController.GetAllEmailsController())
+			e.POST("", emailController.CreateEmailController())
+			e.PUT("", emailController.UpdateEmailController())
+			e.GET("/id", emailController.FindByIDController())
+			e.GET("/user", emailController.FindByUserController())
+		}
+	}
 
 	{
 		e := api.Group("/employees")

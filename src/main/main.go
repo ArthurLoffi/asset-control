@@ -108,6 +108,10 @@ func newRouter(db *mongo.Database) *gin.Engine {
 	utilsUseCase := usecase.NewUtilsUseCase(utilsRepository)
 	utilsController := controller.NewUtilsController(utilsUseCase)
 
+	emailRepository := repository.NewEmailRepository(db)
+	emailUseCase := usecase.NewEmailUseCase(emailRepository)
+	emailController := controller.NewEmailController(emailUseCase)
+
 	r := gin.Default()
 
 	routes.Routes(
@@ -118,6 +122,7 @@ func newRouter(db *mongo.Database) *gin.Engine {
 		monitorController,
 		printerController,
 		utilsController,
+		emailController,
 	)
 
 	return r

@@ -1,5 +1,22 @@
 basePath: /api
 definitions:
+  dto.CreateEmailDto:
+    properties:
+      email:
+        example: ana@example.com
+        type: string
+      password_hash:
+        description: PasswordHash is stored as plaintext, without trimming or hashing.
+        example: example-password
+        type: string
+      user:
+        example: Ana
+        type: string
+    required:
+    - email
+    - password_hash
+    - user
+    type: object
   dto.CreateEmployeeDto:
     properties:
       branch_id:
@@ -140,6 +157,44 @@ definitions:
     - ip
     - model
     type: object
+  dto.EmailDto:
+    properties:
+      created_at:
+        example: "2026-01-01T00:00:00Z"
+        format: date-time
+        type: string
+      email:
+        example: ana@example.com
+        type: string
+      id:
+        example: 42
+        format: int32
+        type: integer
+      password_hash:
+        description: PasswordHash contains the plaintext password as stored in usableEmails.
+        example: example-password
+        type: string
+      user:
+        example: Ana
+        type: string
+    type: object
+  dto.EmailListResponseDto:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.EmailDto'
+        type: array
+      status:
+        example: emails retrieved successfully
+        type: string
+    type: object
+  dto.EmailResponseDto:
+    properties:
+      data:
+        $ref: '#/definitions/dto.EmailDto'
+      status:
+        type: string
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -152,6 +207,236 @@ info:
   title: Asset control API
   version: v0.3.0
 paths:
+  /emails:
+    get:
+      description: Retorna todos os registros de usableEmails em ordem crescente de
+        ID, incluindo password_hash em texto puro, exatamente como armazenado. Retorna
+        data como uma lista vazia quando não houver registros.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EmailListResponseDto'
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "504":
+          description: Tempo limite da operação no banco de dados
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista todos os emails
+      tags:
+      - emails
+    post:
+      consumes:
+      - application/json
+      description: Cria um registro em usableEmails com ID int32 e created_at gerados
+        pelo servidor. Os campos user, email e password_hash são obrigatórios. A senha
+        é armazenada e retornada em texto puro, sem alterações.
+      parameters:
+      - description: Dados do email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateEmailDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'Email criado; status: created'
+          schema:
+            $ref: '#/definitions/dto.EmailResponseDto'
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflito de registro
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor ou IDs esgotados
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "504":
+          description: Tempo limite da operação no banco de dados
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um email
+      tags:
+      - emails
+    put:
+      consumes:
+      - application/json
+      description: Substitui user, email e password_hash do registro indicado pelo
+        ID; os três campos são obrigatórios. Preserva id e created_at. A senha é armazenada
+        e retornada em texto puro, sem alterações. Não cria registros quando o ID
+        não existe.
+      parameters:
+      - description: ID do email (inteiro positivo de 32 bits)
+        format: int32
+        in: query
+        maximum: 2147483647
+        minimum: 1
+        name: id
+        required: true
+        type: integer
+      - description: Dados atualizados do email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateEmailDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Email atualizado; status: email updated successfully'
+          schema:
+            $ref: '#/definitions/dto.EmailResponseDto'
+        "400":
+          description: ID ou dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Email não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflito de registro
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "504":
+          description: Tempo limite da operação no banco de dados
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza um email
+      tags:
+      - emails
+  /emails/id:
+    get:
+      description: Retorna um email de usableEmails pelo ID. O campo password_hash
+        retorna a senha em texto puro, exatamente como armazenada.
+      parameters:
+      - description: ID do email (inteiro positivo de 32 bits)
+        format: int32
+        in: query
+        maximum: 2147483647
+        minimum: 1
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EmailResponseDto'
+        "400":
+          description: ID inválido ou não informado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Email não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "504":
+          description: Tempo limite da operação no banco de dados
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca email por ID
+      tags:
+      - emails
+  /emails/user:
+    get:
+      description: Busca parcial pelo campo user, sem diferenciar maiúsculas de minúsculas;
+        caracteres especiais são tratados literalmente. Espaços nas extremidades da
+        busca são removidos. Retorna o email com menor ID quando houver múltiplos
+        resultados. O campo password_hash retorna a senha em texto puro, exatamente
+        como armazenada.
+      parameters:
+      - description: Usuário do email (não pode ser vazio)
+        in: query
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EmailResponseDto'
+        "400":
+          description: Usuário não informado ou vazio
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Email não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "504":
+          description: Tempo limite da operação no banco de dados
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca email por usuário
+      tags:
+      - emails
   /employees:
     get:
       description: Retorna todos os funcionários cadastrados.
