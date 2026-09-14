@@ -5,7 +5,7 @@ type CreateMachineDto struct {
 	AssetNumber      *int    `json:"asset_number" binding:"omitempty,gte=0"`
 	Type             string  `json:"type" binding:"required,max=100"`
 	Model            string  `json:"model" binding:"required,max=255"`
-	SerialNumber     string  `json:"serial_number" binding:"required,max=100"`
+	SerialNumber     string  `json:"serial_number" binding:"max=100"`
 	HasKeyboard      *bool   `json:"has_keyboard"`
 	HasMouse         *bool   `json:"has_mouse"`
 	MachineCondition *string `json:"machine_condition" binding:"omitempty,max=100"`
