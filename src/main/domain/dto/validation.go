@@ -84,6 +84,10 @@ func (input *CreatePhoneDto) Validate() error {
 	input.Model = strings.TrimSpace(input.Model)
 	input.IMEI = strings.TrimSpace(input.IMEI)
 	input.SerialNumber = strings.TrimSpace(input.SerialNumber)
+	requiresIdentification := input.Equipament == nil || (*input.Equipament != "Só chip" && *input.Equipament != "Sem chip")
+	if requiresIdentification && (input.Model == "" || input.IMEI == "" || input.SerialNumber == "") {
+		return fmt.Errorf("%w: model, imei and serial_number are required for mobile phone records", domain.ErrValidation)
+	}
 	if err := validateInput(input); err != nil {
 		return err
 	}

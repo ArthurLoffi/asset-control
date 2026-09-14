@@ -1770,11 +1770,6 @@ const docTemplate = `{
         },
         "dto.CreatePhoneDto": {
             "type": "object",
-            "required": [
-                "imei",
-                "model",
-                "serial_number"
-            ],
             "properties": {
                 "employee_id": {
                     "type": "integer",
@@ -1788,14 +1783,17 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "imei": {
+                    "description": "Required unless equipament is \"Só chip\" or \"Sem chip\".",
                     "type": "string",
                     "maxLength": 100
                 },
                 "model": {
+                    "description": "Required unless equipament is \"Só chip\" or \"Sem chip\".",
                     "type": "string",
                     "maxLength": 100
                 },
                 "serial_number": {
+                    "description": "Required unless equipament is \"Só chip\" or \"Sem chip\".",
                     "type": "string",
                     "maxLength": 100
                 },

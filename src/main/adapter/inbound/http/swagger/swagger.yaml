@@ -115,21 +115,20 @@ definitions:
       has_chip:
         type: boolean
       imei:
+        description: Required unless equipament is "Só chip" or "Sem chip".
         maxLength: 100
         type: string
       model:
+        description: Required unless equipament is "Só chip" or "Sem chip".
         maxLength: 100
         type: string
       serial_number:
+        description: Required unless equipament is "Só chip" or "Sem chip".
         maxLength: 100
         type: string
       situation:
         maxLength: 100
         type: string
-    required:
-    - imei
-    - model
-    - serial_number
     type: object
   dto.CreatePrinterDto:
     properties:

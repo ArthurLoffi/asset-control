@@ -86,6 +86,11 @@ to this backend. Missing IDs return 404 without inserting a document.
 Machine, monitor, and phone situations default to `Em uso`; the original SQL
 enums and required fields are validated in the application. No additional
 foreign-key or email-uniqueness rules are assumed without the original schema.
+For phone POST and PUT, `model`, `imei`, and `serial_number` may be empty when
+`equipament` is `Só chip` or `Sem chip`. They remain required for `Celular` or
+unspecified equipment, and retain the 100-character maximum in every case.
+Existing identification values are preserved when supplied; no placeholders
+are generated. Restart the API after updating it to apply this validation rule.
 Database failures return 500, missing records 404, conflicts 409, and operation
 timeouts 504. Internal database details are not exposed in responses.
 
