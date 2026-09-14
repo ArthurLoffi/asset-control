@@ -36,6 +36,11 @@ func persistenceError(err error) error {
 }
 
 func (r documentRepository[T]) create(ctx context.Context, document T) (T, error) {
+	return r.createWithIDLimit(ctx, document, math.MaxInt64)
+}
+
+// Email IDs retain their imported BSON int32 representation and cannot overflow.
+func (r documentRepository[T]) createWithIDLimit(ctx context.Context, document T, maxID int64) (T, error) {
 	var zero T
 	fields, err := documentFields(document)
 	if err != nil {
@@ -45,7 +50,7 @@ func (r documentRepository[T]) create(ctx context.Context, document T) (T, error
 		Seq int64 `bson:"seq"`
 	}
 	err = r.counters.FindOneAndUpdate(ctx,
-		bson.M{"_id": r.collection.Name(), "seq": bson.M{"$lt": int64(math.MaxInt64)}},
+		bson.M{"_id": r.collection.Name(), "seq": bson.M{"$lt": maxID}},
 		bson.M{"$inc": bson.M{"seq": int64(1)}},
 		options.FindOneAndUpdate().SetReturnDocument(options.After),
 	).Decode(&counter)
@@ -53,6 +58,9 @@ func (r documentRepository[T]) create(ctx context.Context, document T) (T, error
 		return zero, fmt.Errorf("allocate %s ID (initialize schema before writes): %w", r.collection.Name(), err)
 	}
 	fields["id"] = counter.Seq
+	if maxID == math.MaxInt32 {
+		fields["id"] = int32(counter.Seq)
+	}
 	fields["created_at"] = time.Now().UTC().Truncate(time.Millisecond)
 	// Decode before inserting so conversion errors cannot report a failed write.
 	encoded, err := bson.Marshal(fields)

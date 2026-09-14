@@ -41,8 +41,32 @@ be BSON dates, and nullable values should retain their BSON null/boolean types.
 
 Collections remain `employees`, `machines`, `monitors`, `phones`, `printers`,
 `branches`, and `departments`. The renamed email collection is **`usableEmails`**,
-recorded as `database.UsableEmailsCollection`. The original backend had no
-usable-email repository or HTTP endpoint, so no new email workflow is introduced.
+recorded as `database.UsableEmailsCollection`. Email lookups are available through
+`GET /api/emails/id?id=42` and `GET /api/emails/user?user=Ana`.
+`GET /api/emails` lists every email in ascending ID order using the response
+`{ "status": "emails retrieved successfully", "data": [...] }`; an empty
+collection returns `data: []`. Listed records include all five fields, including
+the unchanged plaintext `password_hash`.
+The ID must be a positive int32 (1 through 2147483647). User searches trim outer
+whitespace and use literal, case-insensitive partial matching, returning the
+lowest-ID match, consistent with employee name searches. Missing matches return
+404; missing/invalid search values return 400.
+Both return `{ "status": "email found successfully", "data": { ... } }`, with
+`id`, `user`, `email`, `password_hash`, and `created_at` (RFC 3339 timestamp).
+`password_hash` contains the plaintext password exactly as stored; lookups do
+not hash, mask, or modify it. There is no email delete route.
+
+Create emails with `POST /api/emails` and edit them with
+`PUT /api/emails?id=42`. Both require a JSON body containing `user`, `email`
+(a valid email address), and `password_hash` (a nonempty plaintext password).
+PUT replaces all three fields; it preserves `id`, `created_at`, and unknown
+imported fields, returning 404 for missing IDs. Passwords are not trimmed or
+hashed. POST returns 201 with status `created`; PUT returns 200 with status
+`email updated successfully`. Both include the saved record in `data`.
+Startup creates a unique `id` index and seeds the `usableEmails` ID counter
+from imported records. New IDs are stored as BSON int32; creation fails with
+500 when the int32 ID range is exhausted. Restart the backend before using
+the write routes so the new counter and index are initialized.
 This application does not copy data or rename existing collections.
 
 The additional `_counters` collection allocates numeric IDs atomically. On
