@@ -21,7 +21,7 @@ func TestEmailLookups(t *testing.T) {
 	ctx := context.Background()
 	createdAt := time.Date(2025, 3, 4, 12, 0, 0, 0, time.UTC)
 	collection := db.Collection(database.UsableEmailsCollection)
-	router := newRouter(db)
+	router := testRouter(t, db)
 	if data := callAPI(t, router, "GET", "/api/emails", nil, 200); string(data) != "[]" {
 		t.Fatalf("empty email list: %s", data)
 	}
@@ -79,7 +79,7 @@ func TestEmailCreateAndUpdate(t *testing.T) {
 	if err := database.EnsureSchema(ctx, db); err != nil {
 		t.Fatal(err)
 	}
-	router := newRouter(db)
+	router := testRouter(t, db)
 	body := map[string]any{"user": "Ana", "email": "ana@example.com", "password_hash": " plain<&>text ", "id": 999, "created_at": "2000-01-01T00:00:00Z"}
 	created := object(t, callAPI(t, router, "POST", "/api/emails", body, 201))
 	if created["id"] != float64(42) || created["created_at"] == nil || created["created_at"] == body["created_at"] || created["password_hash"] != body["password_hash"] {
