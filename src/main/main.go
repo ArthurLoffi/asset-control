@@ -16,6 +16,13 @@ import (
 	"asset-control/src/main/adapter/outbound/data/repository"
 	"asset-control/src/main/usecase"
 
+	authController "github.com/Brasil-Novo/asset-control-auth/src/main/adapter/inbound/http/controller"
+	authMiddleware "github.com/Brasil-Novo/asset-control-auth/src/main/adapter/inbound/http/middleware"
+	authRoutes "github.com/Brasil-Novo/asset-control-auth/src/main/adapter/inbound/http/routes"
+	authRepository "github.com/Brasil-Novo/asset-control-auth/src/main/adapter/outbound/data/repository"
+	"github.com/Brasil-Novo/asset-control-auth/src/main/adapter/security"
+	authUsecase "github.com/Brasil-Novo/asset-control-auth/src/main/usecase"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -39,6 +46,10 @@ func main() {
 }
 
 func run() error {
+	authCfg, err := security.ConfigFromEnv()
+	if err != nil {
+		return err
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	cfg, err := database.ConfigFromEnv()
@@ -61,7 +72,17 @@ func run() error {
 		return err
 	}
 
-	r := newRouter(db)
+	users := authRepository.NewUserRepository(db)
+	schemaCtx, cancel = context.WithTimeout(ctx, cfg.Timeout)
+	err = users.EnsureSchema(schemaCtx)
+	cancel()
+	if err != nil {
+		return errors.New("could not create unique users.name index; check permissions and duplicate names")
+	}
+	r, err := newRouter(db, authCfg)
+	if err != nil {
+		return err
+	}
 
 	server := &http.Server{Addr: ":8080", Handler: r, ReadHeaderTimeout: 5 * time.Second}
 	serverErrors := make(chan error, 1)
@@ -83,7 +104,16 @@ func run() error {
 	}
 }
 
-func newRouter(db *mongo.Database) *gin.Engine {
+func newRouter(db *mongo.Database, authCfg security.Config) (*gin.Engine, error) {
+	tokens, err := security.NewTokens(authCfg.Secret, authCfg.TTL)
+	if err != nil {
+		return nil, err
+	}
+	passwords, err := security.NewPasswords()
+	if err != nil {
+		return nil, err
+	}
+	login := authUsecase.NewLoginUseCase(authRepository.NewUserRepository(db), passwords, tokens, security.NewAttempts())
 	employeeRepository := repository.NewEmployeeRepository(db)
 	employeeUseCase := usecase.NewEmployeeUseCase(employeeRepository)
 	employeeController := controller.NewEmployeeController(employeeUseCase)
@@ -112,7 +142,12 @@ func newRouter(db *mongo.Database) *gin.Engine {
 	emailUseCase := usecase.NewEmailUseCase(emailRepository)
 	emailController := controller.NewEmailController(emailUseCase)
 
-	r := gin.Default()
+	r := gin.New()
+	_ = r.SetTrustedProxies(nil)
+	r.Use(gin.Logger(), authMiddleware.Recovery(), authMiddleware.RequestID(), authMiddleware.BrowserSecurity(authCfg.Origins))
+	authRoutes.Register(r.Group("/api"), authController.NewAuthController(login, authCfg.Secure), tokens)
+	// All inventory routes and Swagger require a verified session.
+	r.Use(authMiddleware.RequireSession(tokens))
 
 	routes.Routes(
 		r,
@@ -125,5 +160,5 @@ func newRouter(db *mongo.Database) *gin.Engine {
 		emailController,
 	)
 
-	return r
+	return r, nil
 }

@@ -121,7 +121,7 @@ func TestMongoDBAPIRoundTrips(t *testing.T) {
 		t.Fatal(err)
 	}
 	gin.SetMode(gin.TestMode)
-	router := newRouter(db)
+	router := testRouter(t, db)
 	for _, tc := range cases {
 		t.Run(tc.collection, func(t *testing.T) {
 			path := "/api/" + tc.collection
@@ -297,7 +297,7 @@ func TestMongoDBEmptyCollections(t *testing.T) {
 		t.Fatal(err)
 	}
 	gin.SetMode(gin.TestMode)
-	router := newRouter(db)
+	router := testRouter(t, db)
 	for _, name := range []string{"employees", "machines", "monitors", "phones", "printers"} {
 		result := callAPI(t, router, "GET", "/api/"+name, nil, 200)
 		if string(result) != "[]" {

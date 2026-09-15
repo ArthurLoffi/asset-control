@@ -118,3 +118,32 @@ filters, literal case-insensitive name searches, defaults, null/false updates,
 validation, error mapping, cancellation, concurrent IDs, and restart behavior.
 
 Regenerate API documentation with `make swagger` (pinned generator version).
+
+## Authentication
+
+Requires Go 1.26.5 and sibling `../asset-control-auth` at build time (local Go
+module replacement). The API mounts the auth module directly; no separate auth
+server is needed. Configure `AUTH_JWT_SECRET` (random, at least 32 bytes),
+`AUTH_TOKEN_TTL` (default `8h`), `AUTH_COOKIE_SECURE` (true for production HTTPS),
+and `AUTH_ALLOWED_ORIGINS` (exact frontend origins) using `.env.example`.
+Startup fails without a valid signing key.
+
+Users live in the configured database's `users` collection, with MongoDB
+ObjectId `_id`, unique case-sensitive `name`, and bcrypt `password`. Login audits
+update only audit fields; credentials and inventory data are preserved. Startup
+creates a unique `users.name` index; existing duplicates must be resolved first.
+
+- `POST /api/auth/login`: JSON `{user, password}`; sets an HttpOnly JWT cookie
+  and returns `{status, data: {id, name, expires_at}}`.
+- `GET /api/auth/session`: returns the current session or 401.
+- `POST /api/auth/logout`: clears the cookie, including after expiry.
+- All inventory routes and Swagger require the session cookie. Missing/invalid
+  tokens return 401; expired tokens include `code: "session_expired"`.
+- Every write requires `X-CSRF-Protection: 1`. Requests from browsers must use
+  an origin in `AUTH_ALLOWED_ORIGINS`; CORS credentials are enabled only there.
+
+Use the frontend at the same origin/site as the API. Login and inventory requests
+share the `/api` base URL. Read `../asset-control-auth/README.md` for the full
+contract, deployment layout, user provisioning, and process-local guessing-guard
+limitations. Logout clears the browser cookie; it does not revoke copied JWTs.
+Integration inventory tests now supply signed test cookies and CSRF headers.
