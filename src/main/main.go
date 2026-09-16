@@ -158,6 +158,7 @@ func newRouter(db *mongo.Database, authCfg security.Config) (*gin.Engine, error)
 		printerController,
 		utilsController,
 		emailController,
+		controller.NewDeactivationController(usecase.NewDeactivationUseCase(repository.NewDeactivationRepository(db))),
 	)
 
 	return r, nil

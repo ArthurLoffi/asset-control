@@ -147,3 +147,22 @@ share the `/api` base URL. Read `../asset-control-auth/README.md` for the full
 contract, deployment layout, user provisioning, and process-local guessing-guard
 limitations. Logout clears the browser cookie; it does not revoke copied JWTs.
 Integration inventory tests now supply signed test cookies and CSRF headers.
+
+## Inventory deactivation
+
+For employees, machines, phones, monitors, printers, and emails:
+
+- `POST /api/<resource>/deactivate?id=<id>` requires a session and browser CSRF
+  protection. It preserves the document and sets `deactivated_at` using the MongoDB
+  server clock. The `{status, data}` response contains `id` and the UTC timestamp.
+  Retries return the original timestamp; missing IDs return 404.
+- Ordinary lists, searches, employee assignment lookups, and PUT operations only
+  access active records. Legacy documents with no timestamp (or null) remain active.
+  Deactivating an employee does not deactivate equipment assigned to that employee.
+- `GET /api/<resource>/inactive?after=0&limit=50` returns a separate history page:
+  `{status, data: {records: [{id, deactivated_at}], next_after}}`. Pass `next_after`
+  as the next `after`; null means the last page. Limit is 1-100. The endpoint returns
+  lifecycle metadata only; the original document remains stored unchanged.
+- Startup creates indexes for active lists, employee assignments, and inactive
+  history. Dashboard requests never load inactive history. No migration of legacy
+  records is required, and ordinary writes cannot reactivate records.

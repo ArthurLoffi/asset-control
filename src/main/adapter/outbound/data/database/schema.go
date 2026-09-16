@@ -20,8 +20,15 @@ func EnsureSchema(ctx context.Context, db *mongo.Database) error {
 	for _, name := range []string{"employees", "machines", "monitors", "phones", "printers", "branches", "departments", UsableEmailsCollection} {
 		collection := db.Collection(name)
 		indexes := []mongo.IndexModel{{Keys: bson.D{{Key: "id", Value: 1}}, Options: options.Index().SetUnique(true)}}
+		if name != "branches" && name != "departments" {
+			indexes = append(indexes,
+				mongo.IndexModel{Keys: bson.D{{Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}},
+				mongo.IndexModel{Keys: bson.D{{Key: "id", Value: 1}}, Options: options.Index().SetName("inactive_by_id").SetPartialFilterExpression(bson.M{"deactivated_at": bson.M{"$type": "date"}})},
+			)
+		}
 		if name == "machines" || name == "monitors" || name == "phones" {
 			indexes = append(indexes, mongo.IndexModel{Keys: bson.D{{Key: "employee_id", Value: 1}}})
+			indexes = append(indexes, mongo.IndexModel{Keys: bson.D{{Key: "employee_id", Value: 1}, {Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}})
 		}
 		if _, err := collection.Indexes().CreateMany(ctx, indexes); err != nil {
 			return fmt.Errorf("create indexes for %s: %w", name, err)

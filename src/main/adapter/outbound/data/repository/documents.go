@@ -85,7 +85,7 @@ func (r documentRepository[T]) update(ctx context.Context, id uint64, document T
 	if err != nil {
 		return result, err
 	}
-	err = r.collection.FindOneAndUpdate(ctx, bson.M{"id": id}, bson.M{"$set": fields}, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&result)
+	err = r.collection.FindOneAndUpdate(ctx, activeFilter(bson.M{"id": id}), bson.M{"$set": fields}, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&result)
 	return result, persistenceError(err)
 }
 
@@ -101,18 +101,30 @@ func documentFields(document any) (bson.M, error) {
 	delete(fields, "_id")
 	delete(fields, "id")
 	delete(fields, "created_at")
+	delete(fields, "deactivated_at")
 	return fields, nil
+}
+
+// Null equality includes imported records without lifecycle metadata. Copy the
+// filter so callers cannot accidentally retain or override the active scope.
+func activeFilter(filter bson.M) bson.M {
+	result := make(bson.M, len(filter)+1)
+	for key, value := range filter {
+		result[key] = value
+	}
+	result["deactivated_at"] = nil
+	return result
 }
 
 func (r documentRepository[T]) findOne(ctx context.Context, filter bson.M) (T, error) {
 	var result T
-	err := r.collection.FindOne(ctx, filter, options.FindOne().SetSort(bson.D{{Key: "id", Value: 1}})).Decode(&result)
+	err := r.collection.FindOne(ctx, activeFilter(filter), options.FindOne().SetSort(bson.D{{Key: "id", Value: 1}})).Decode(&result)
 	return result, persistenceError(err)
 }
 
 func (r documentRepository[T]) find(ctx context.Context, filter bson.M) ([]T, error) {
 	result := make([]T, 0)
-	cursor, err := r.collection.Find(ctx, filter, options.Find().SetSort(bson.D{{Key: "id", Value: 1}}))
+	cursor, err := r.collection.Find(ctx, activeFilter(filter), options.Find().SetSort(bson.D{{Key: "id", Value: 1}}))
 	if err != nil {
 		return nil, persistenceError(err)
 	}

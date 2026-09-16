@@ -72,7 +72,6 @@ definitions:
         type: string
     required:
     - model
-    - serial_number
     - type
     - user
     type: object
@@ -156,6 +155,20 @@ definitions:
     - ip
     - model
     type: object
+  dto.DeactivationDto:
+    properties:
+      deactivated_at:
+        type: string
+      id:
+        type: integer
+    type: object
+  dto.DeactivationResponseDto:
+    properties:
+      data:
+        $ref: '#/definitions/dto.DeactivationDto'
+      status:
+        type: string
+    type: object
   dto.EmailDto:
     properties:
       created_at:
@@ -191,6 +204,22 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/dto.EmailDto'
+      status:
+        type: string
+    type: object
+  dto.InactivePageDto:
+    properties:
+      next_after:
+        type: integer
+      records:
+        items:
+          $ref: '#/definitions/dto.DeactivationDto'
+        type: array
+    type: object
+  dto.InactivePageResponseDto:
+    properties:
+      data:
+        $ref: '#/definitions/dto.InactivePageDto'
       status:
         type: string
     type: object
@@ -342,6 +371,43 @@ paths:
       summary: Atualiza um email
       tags:
       - emails
+  /emails/deactivate:
+    post:
+      parameters:
+      - description: Record ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deactivate an inventory record
+      tags:
+      - deactivation
   /emails/id:
     get:
       description: Retorna um email de usableEmails pelo ID. O campo password_hash
@@ -389,6 +455,46 @@ paths:
       summary: Busca email por ID
       tags:
       - emails
+  /emails/inactive:
+    get:
+      parameters:
+      - description: Last ID from previous page (default 0)
+        format: int64
+        in: query
+        name: after
+        type: integer
+      - description: Page size (1-100, default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InactivePageResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List deactivation history separately from active inventory
+      tags:
+      - deactivation
   /emails/user:
     get:
       description: Busca parcial pelo campo user, sem diferenciar maiúsculas de minúsculas;
@@ -531,6 +637,43 @@ paths:
       summary: Atualiza um funcionário
       tags:
       - employees
+  /employees/deactivate:
+    post:
+      parameters:
+      - description: Record ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deactivate an inventory record
+      tags:
+      - deactivation
   /employees/id:
     get:
       description: Busca um funcionário pelo ID informado como query parameter.
@@ -564,6 +707,46 @@ paths:
       summary: Busca funcionário por ID
       tags:
       - employees
+  /employees/inactive:
+    get:
+      parameters:
+      - description: Last ID from previous page (default 0)
+        format: int64
+        in: query
+        name: after
+        type: integer
+      - description: Page size (1-100, default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InactivePageResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List deactivation history separately from active inventory
+      tags:
+      - deactivation
   /employees/name:
     get:
       description: Busca um funcionário pelo nome informado como query parameter.
@@ -691,6 +874,43 @@ paths:
       summary: Atualiza uma máquina
       tags:
       - machines
+  /machines/deactivate:
+    post:
+      parameters:
+      - description: Record ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deactivate an inventory record
+      tags:
+      - deactivation
   /machines/employee_id:
     get:
       description: Retorna as máquinas vinculadas ao funcionário informado pelo ID.
@@ -757,6 +977,46 @@ paths:
       summary: Busca máquina por ID
       tags:
       - machines
+  /machines/inactive:
+    get:
+      parameters:
+      - description: Last ID from previous page (default 0)
+        format: int64
+        in: query
+        name: after
+        type: integer
+      - description: Page size (1-100, default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InactivePageResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List deactivation history separately from active inventory
+      tags:
+      - deactivation
   /monitors:
     get:
       description: Retorna todos os monitores cadastrados.
@@ -851,6 +1111,43 @@ paths:
       summary: Atualiza um monitor
       tags:
       - monitors
+  /monitors/deactivate:
+    post:
+      parameters:
+      - description: Record ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deactivate an inventory record
+      tags:
+      - deactivation
   /monitors/employee_id:
     get:
       description: Retorna todos os monitores associados ao ID de um funcionário.
@@ -917,6 +1214,46 @@ paths:
       summary: Busca monitor por ID
       tags:
       - monitors
+  /monitors/inactive:
+    get:
+      parameters:
+      - description: Last ID from previous page (default 0)
+        format: int64
+        in: query
+        name: after
+        type: integer
+      - description: Page size (1-100, default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InactivePageResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List deactivation history separately from active inventory
+      tags:
+      - deactivation
   /phones:
     get:
       description: Retorna todos os telefones cadastrados.
@@ -1012,6 +1349,43 @@ paths:
       summary: Atualiza um telefone
       tags:
       - phones
+  /phones/deactivate:
+    post:
+      parameters:
+      - description: Record ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deactivate an inventory record
+      tags:
+      - deactivation
   /phones/employee_id:
     get:
       description: Retorna os telefones vinculados ao funcionário informado pelo ID.
@@ -1078,6 +1452,46 @@ paths:
       summary: Busca telefone por ID
       tags:
       - phones
+  /phones/inactive:
+    get:
+      parameters:
+      - description: Last ID from previous page (default 0)
+        format: int64
+        in: query
+        name: after
+        type: integer
+      - description: Page size (1-100, default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InactivePageResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List deactivation history separately from active inventory
+      tags:
+      - deactivation
   /printers:
     get:
       description: Retorna todas as impressoras cadastradas.
@@ -1173,6 +1587,43 @@ paths:
       summary: Atualiza uma impressora
       tags:
       - printers
+  /printers/deactivate:
+    post:
+      parameters:
+      - description: Record ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deactivate an inventory record
+      tags:
+      - deactivation
   /printers/id:
     get:
       description: Busca uma impressora pelo ID informado como query parameter.
@@ -1206,6 +1657,46 @@ paths:
       summary: Busca impressora por ID
       tags:
       - printers
+  /printers/inactive:
+    get:
+      parameters:
+      - description: Last ID from previous page (default 0)
+        format: int64
+        in: query
+        name: after
+        type: integer
+      - description: Page size (1-100, default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InactivePageResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List deactivation history separately from active inventory
+      tags:
+      - deactivation
   /utils/branch:
     get:
       description: Retorna o nome dela de acordo com o ID passado.
