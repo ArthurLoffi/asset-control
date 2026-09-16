@@ -30,3 +30,15 @@ using actual signed cookies instead of disabling authentication.
 
 Use focused changes and short Conventional Commit subjects when committing.
 Update AGENTS.md in every commit, consistent with the sibling projects.
+
+## Deactivation
+
+Employees, machines, phones, monitors, printers, and emails support deactivation.
+POST /api/<resource>/deactivate?id=<id> sets the database timestamp once and
+preserves the record. Missing/null deactivated_at means active (including legacy
+imports). All ordinary lists, searches, assignment lookups, and updates use the
+active scope. Deactivating an employee does not cascade to assigned equipment.
+GET /api/<resource>/inactive?after=0&limit=50 returns only deactivation IDs and
+timestamps, with next_after cursor pagination (limit 1-100). Keep history requests
+separate from active inventory and dashboard reads. Never reset a timestamp on
+retry or let ordinary writes change lifecycle metadata.

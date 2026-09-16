@@ -17,8 +17,13 @@ func Routes(
 	printerController *controller.PrinterController,
 	utilsController *controller.UtilsController,
 	emailController *controller.EmailController,
+	deactivationController *controller.DeactivationController,
 ) {
 	api := r.Group("/api")
+	for _, resource := range []string{"employees", "machines", "phones", "monitors", "printers", "emails"} {
+		api.POST("/"+resource+"/deactivate", deactivationController.Deactivate(resource))
+		api.GET("/"+resource+"/inactive", deactivationController.ListInactive(resource))
+	}
 
 	{
 		e := api.Group("/emails")
