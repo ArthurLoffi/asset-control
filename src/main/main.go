@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"asset-control/src/main/adapter/inbound/http/controller"
+	auditMiddleware "asset-control/src/main/adapter/inbound/http/middleware"
 	"asset-control/src/main/adapter/inbound/http/routes"
 	_ "asset-control/src/main/adapter/inbound/http/swagger"
 	"asset-control/src/main/adapter/outbound/data/database"
@@ -114,24 +115,25 @@ func newRouter(db *mongo.Database, authCfg security.Config) (*gin.Engine, error)
 		return nil, err
 	}
 	login := authUsecase.NewLoginUseCase(authRepository.NewUserRepository(db), passwords, tokens, security.NewAttempts())
+	changeRepository := repository.NewChangeRepository(db)
 	employeeRepository := repository.NewEmployeeRepository(db)
-	employeeUseCase := usecase.NewEmployeeUseCase(employeeRepository)
+	employeeUseCase := usecase.NewEmployeeUseCase(employeeRepository, changeRepository)
 	employeeController := controller.NewEmployeeController(employeeUseCase)
 
 	machineRepository := repository.NewMachineRepository(db)
-	machineUseCase := usecase.NewMachineUseCase(machineRepository)
+	machineUseCase := usecase.NewMachineUseCase(machineRepository, changeRepository)
 	machineController := controller.NewMachineController(machineUseCase)
 
 	phoneRepository := repository.NewPhoneRepository(db)
-	phoneUseCase := usecase.NewPhoneUseCase(phoneRepository)
+	phoneUseCase := usecase.NewPhoneUseCase(phoneRepository, changeRepository)
 	phoneController := controller.NewPhoneController(phoneUseCase)
 
 	monitorRepository := repository.NewMonitorRepository(db)
-	monitorUseCase := usecase.NewMonitorUseCase(monitorRepository)
+	monitorUseCase := usecase.NewMonitorUseCase(monitorRepository, changeRepository)
 	monitorController := controller.NewMonitorController(monitorUseCase)
 
 	printerRepository := repository.NewPrinterRepository(db)
-	printerUseCase := usecase.NewPrinterUseCase(printerRepository)
+	printerUseCase := usecase.NewPrinterUseCase(printerRepository, changeRepository)
 	printerController := controller.NewPrinterController(printerUseCase)
 
 	utilsRepository := repository.NewUtilsRepository(db)
@@ -139,15 +141,15 @@ func newRouter(db *mongo.Database, authCfg security.Config) (*gin.Engine, error)
 	utilsController := controller.NewUtilsController(utilsUseCase)
 
 	emailRepository := repository.NewEmailRepository(db)
-	emailUseCase := usecase.NewEmailUseCase(emailRepository)
+	emailUseCase := usecase.NewEmailUseCase(emailRepository, changeRepository)
 	emailController := controller.NewEmailController(emailUseCase)
-
 	r := gin.New()
 	_ = r.SetTrustedProxies(nil)
 	r.Use(gin.Logger(), authMiddleware.Recovery(), authMiddleware.RequestID(), authMiddleware.BrowserSecurity(authCfg.Origins))
 	authRoutes.Register(r.Group("/api"), authController.NewAuthController(login, authCfg.Secure), tokens)
 	// All inventory routes and Swagger require a verified session.
 	r.Use(authMiddleware.RequireSession(tokens))
+	r.Use(auditMiddleware.AuditIdentity())
 
 	routes.Routes(
 		r,

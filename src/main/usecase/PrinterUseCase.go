@@ -7,10 +7,17 @@ import (
 	"asset-control/src/main/domain/ports"
 )
 
-type PrinterUseCase struct{ repository ports.PrinterPorts }
+type PrinterUseCase struct {
+	repository ports.PrinterPorts
+	changes    ports.ChangePorts
+}
 
-func NewPrinterUseCase(repository ports.PrinterPorts) *PrinterUseCase {
-	return &PrinterUseCase{repository: repository}
+func NewPrinterUseCase(repository ports.PrinterPorts, changePorts ...ports.ChangePorts) *PrinterUseCase {
+	var changes ports.ChangePorts
+	if len(changePorts) > 0 {
+		changes = changePorts[0]
+	}
+	return &PrinterUseCase{repository: repository, changes: changes}
 }
 
 func (uc *PrinterUseCase) CreatePrinter(ctx context.Context, input dto.CreatePrinterDto) (dto.PrinterDto, error) {
@@ -24,7 +31,16 @@ func (uc *PrinterUseCase) UpdatePrinter(ctx context.Context, id uint64, input dt
 	if err := input.Validate(); err != nil {
 		return dto.PrinterDto{}, err
 	}
-	return uc.repository.UpdatePrinter(ctx, id, input)
+	return updateWithChange(
+		ctx,
+		uc.changes,
+		"printer",
+		int64(id),
+		func(txCtx context.Context) (dto.PrinterDto, error) { return uc.repository.FindByID(txCtx, id) },
+		func(txCtx context.Context) (dto.PrinterDto, error) {
+			return uc.repository.UpdatePrinter(txCtx, id, input)
+		},
+	)
 }
 
 func (uc *PrinterUseCase) GetAllPrinters(ctx context.Context) ([]dto.PrinterDto, error) {
