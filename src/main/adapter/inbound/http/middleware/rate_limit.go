@@ -46,7 +46,7 @@ func getVisitor(ip string) *rate.Limiter {
 		return c.limiter
 	}
 
-	limiter := rate.NewLimiter(2, 5)
+	limiter := rate.NewLimiter(2, 15)
 
 	clients[ip] = &client{
 		limiter:  limiter,
