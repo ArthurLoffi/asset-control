@@ -42,3 +42,12 @@ GET /api/<resource>/inactive?after=0&limit=50 returns only deactivation IDs and
 timestamps, with next_after cursor pagination (limit 1-100). Keep history requests
 separate from active inventory and dashboard reads. Never reset a timestamp on
 retry or let ordinary writes change lifecycle metadata.
+
+## Audit history
+
+Successful PUT updates for employees, machines, phones, monitors, printers, and
+emails must write an atomic audit record to the `changes` collection in the same
+MongoDB transaction. Audit identity comes only from the validated auth session,
+never from request headers or bodies. Store before/after snapshots, resource,
+resource ID, action, UTC time, and user ID. Redact passwords, password hashes,
+tokens, and similar secrets from audit snapshots.

@@ -7,10 +7,17 @@ import (
 	"asset-control/src/main/domain/ports"
 )
 
-type EmailUseCase struct{ repository ports.EmailsPorts }
+type EmailUseCase struct {
+	repository ports.EmailsPorts
+	changes    ports.ChangePorts
+}
 
-func NewEmailUseCase(repository ports.EmailsPorts) *EmailUseCase {
-	return &EmailUseCase{repository: repository}
+func NewEmailUseCase(repository ports.EmailsPorts, changePorts ...ports.ChangePorts) *EmailUseCase {
+	var changes ports.ChangePorts
+	if len(changePorts) > 0 {
+		changes = changePorts[0]
+	}
+	return &EmailUseCase{repository: repository, changes: changes}
 }
 
 func (uc *EmailUseCase) GetAllEmails(ctx context.Context) ([]dto.EmailDto, error) {
@@ -28,7 +35,14 @@ func (uc *EmailUseCase) UpdateEmail(ctx context.Context, id int32, input dto.Cre
 	if err := input.Validate(); err != nil {
 		return dto.EmailDto{}, err
 	}
-	return uc.repository.UpdateEmail(ctx, id, input)
+	return updateWithChange(
+		ctx,
+		uc.changes,
+		"email",
+		int64(id),
+		func(txCtx context.Context) (dto.EmailDto, error) { return uc.repository.FindByID(txCtx, id) },
+		func(txCtx context.Context) (dto.EmailDto, error) { return uc.repository.UpdateEmail(txCtx, id, input) },
+	)
 }
 
 func (uc *EmailUseCase) FindByID(ctx context.Context, id int32) (dto.EmailDto, error) {
