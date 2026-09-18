@@ -18,6 +18,8 @@ production or silently start without AUTH_JWT_SECRET. Keep .env.example and
 README.md aligned with authentication configuration. Never commit real secrets.
 Use gin.Logger() for HTTP request logs; retain the shared request-ID middleware
 for response headers and login auditing without duplicating request logs.
+Apply request rate limiting after public auth routes and before protected
+inventory routes, with deterministic middleware coverage.
 
 ## Tests
 
