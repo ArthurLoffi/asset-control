@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"asset-control/src/main/adapter/inbound/http/controller"
-	auditMiddleware "asset-control/src/main/adapter/inbound/http/middleware"
+	middleware "asset-control/src/main/adapter/inbound/http/middleware"
 	"asset-control/src/main/adapter/inbound/http/routes"
 	_ "asset-control/src/main/adapter/inbound/http/swagger"
 	"asset-control/src/main/adapter/outbound/data/database"
@@ -148,8 +148,9 @@ func newRouter(db *mongo.Database, authCfg security.Config) (*gin.Engine, error)
 	r.Use(gin.Logger(), authMiddleware.Recovery(), authMiddleware.RequestID(), authMiddleware.BrowserSecurity(authCfg.Origins))
 	authRoutes.Register(r.Group("/api"), authController.NewAuthController(login, authCfg.Secure), tokens)
 	// All inventory routes and Swagger require a verified session.
+	r.Use(middleware.RateLimit())
 	r.Use(authMiddleware.RequireSession(tokens))
-	r.Use(auditMiddleware.AuditIdentity())
+	r.Use(middleware.AuditIdentity())
 
 	routes.Routes(
 		r,

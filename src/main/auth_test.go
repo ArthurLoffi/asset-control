@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/Brasil-Novo/asset-control-auth/src/main/adapter/security"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -55,6 +56,7 @@ func TestAllInventoryRoutesRequireAuthentication(t *testing.T) {
 		path := strings.ReplaceAll(route.Path, "*any", "index.html")
 		for _, cookie := range []string{"", "forged"} {
 			req := httptest.NewRequest(route.Method, path, nil)
+			req.RemoteAddr = fmt.Sprintf("198.51.100.%d:12345", count+1)
 			req.Header.Set("X-CSRF-Protection", "1")
 			if cookie != "" {
 				req.AddCookie(&http.Cookie{Name: security.CookieName, Value: cookie})
@@ -72,6 +74,7 @@ func TestAllInventoryRoutesRequireAuthentication(t *testing.T) {
 	}
 	// Logout must remain reachable with no session.
 	req := httptest.NewRequest("POST", "/api/auth/logout", nil)
+	req.RemoteAddr = "198.51.100.254:12345"
 	req.Header.Set("X-CSRF-Protection", "1")
 	response := httptest.NewRecorder()
 	router.ServeHTTP(response, req)
