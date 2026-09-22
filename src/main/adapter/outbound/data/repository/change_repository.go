@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 	"time"
 
@@ -11,6 +13,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type ChangeRepository struct {
@@ -53,6 +56,112 @@ func (r *ChangeRepository) CreateChange(ctx context.Context, input dto.ChangeDto
 
 	_, err := r.collection.InsertOne(ctx, document)
 	return err
+}
+
+func (r *ChangeRepository) ListRecent(ctx context.Context, limit int64) ([]dto.RecentChangeDto, error) {
+	records := make([]dto.RecentChangeDto, 0)
+	cursor, err := r.collection.Find(ctx, bson.D{}, options.Find().
+		SetSort(bson.D{{Key: "time", Value: -1}, {Key: "_id", Value: -1}}).
+		SetLimit(limit).
+		SetProjection(bson.M{"time": 1, "user_id": 1, "resource": 1, "resource_id": 1, "action": 1, "object": 1}))
+	if err != nil {
+		return records, persistenceError(err)
+	}
+	defer cursor.Close(ctx)
+	var changes []entities.Change
+	if err := cursor.All(ctx, &changes); err != nil {
+		return records, persistenceError(err)
+	}
+	userNames, err := r.userNames(ctx, changes)
+	if err != nil {
+		return records, err
+	}
+	for _, change := range changes {
+		records = append(records, dto.RecentChangeDto{
+			ID: change.ID.Hex(), Time: change.Time, UserID: change.UserID, UserName: userNames[change.UserID],
+			Resource: change.Resource, ResourceID: change.ResourceID, Action: change.Action,
+			ChangedFields: changedFields(change.Object.Before, change.Object.After),
+		})
+	}
+	return records, nil
+}
+
+func (r *ChangeRepository) userNames(ctx context.Context, changes []entities.Change) (map[string]string, error) {
+	names := make(map[string]string)
+	ids := make([]bson.ObjectID, 0, len(changes))
+	for _, change := range changes {
+		if _, seen := names[change.UserID]; seen {
+			continue
+		}
+		names[change.UserID] = ""
+		id, err := bson.ObjectIDFromHex(change.UserID)
+		if err == nil {
+			ids = append(ids, id)
+		}
+	}
+	if len(ids) == 0 {
+		return names, nil
+	}
+	cursor, err := r.db.Collection("users").Find(ctx, bson.M{"_id": bson.M{"$in": ids}},
+		options.Find().SetProjection(bson.M{"name": 1}))
+	if err != nil {
+		return nil, persistenceError(err)
+	}
+	defer cursor.Close(ctx)
+	var users []struct {
+		ID   bson.ObjectID `bson:"_id"`
+		Name string        `bson:"name"`
+	}
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, persistenceError(err)
+	}
+	for _, user := range users {
+		names[user.ID.Hex()] = user.Name
+	}
+	return names, nil
+}
+
+func changedFields(before, after bson.M) []dto.ChangedFieldDto {
+	fields := make([]dto.ChangedFieldDto, 0)
+	keys := make([]string, 0, len(before)+len(after))
+	seen := make(map[string]bool)
+	for _, document := range []bson.M{before, after} {
+		for key := range document {
+			if !seen[key] {
+				keys = append(keys, key)
+				seen[key] = true
+			}
+		}
+	}
+	slices.Sort(keys)
+	for _, key := range keys {
+		if key == "id" || key == "created_at" || key == "deactivated_at" || isSensitiveAuditField(key) {
+			continue
+		}
+		oldValue, newValue := before[key], after[key]
+		if reflect.DeepEqual(oldValue, newValue) {
+			continue
+		}
+		oldText, oldSafe := auditScalar(oldValue)
+		newText, newSafe := auditScalar(newValue)
+		if oldSafe && newSafe {
+			fields = append(fields, dto.ChangedFieldDto{Field: key, Before: oldText, After: newText})
+		}
+	}
+	return fields
+}
+
+func auditScalar(value any) (string, bool) {
+	switch v := value.(type) {
+	case nil:
+		return "", true
+	case string, bool, int, int32, int64, uint, uint32, uint64, float32, float64:
+		return fmt.Sprint(v), true
+	case time.Time:
+		return v.Format(time.RFC3339), true
+	default:
+		return "", false
+	}
 }
 
 func auditDocument(value any) bson.M {

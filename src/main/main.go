@@ -164,6 +164,7 @@ func newRouter(db *mongo.Database, authCfg security.Config, caches ...ports.Inve
 	emailRepository := repository.NewEmailRepository(db)
 	emailUseCase := usecase.NewEmailUseCase(emailRepository, changeRepository)
 	emailController := controller.NewEmailController(emailUseCase)
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	_ = r.SetTrustedProxies(nil)
 	r.Use(gin.Logger(), authMiddleware.Recovery(), authMiddleware.RequestID(), authMiddleware.BrowserSecurity(authCfg.Origins))
@@ -186,6 +187,7 @@ func newRouter(db *mongo.Database, authCfg security.Config, caches ...ports.Inve
 		utilsController,
 		emailController,
 		controller.NewDeactivationController(usecase.NewDeactivationUseCase(repository.NewDeactivationRepository(db))),
+		controller.NewRecentChangeController(usecase.NewRecentChangeUseCase(changeRepository)),
 	)
 
 	return r, nil
