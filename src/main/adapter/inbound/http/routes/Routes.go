@@ -53,6 +53,7 @@ func Routes(
 			m.POST("", machineController.CreateMachineController())
 			m.GET("/id", machineController.FindByIDController())
 			m.GET("/employee_id", machineController.FindByEmployeeIDController())
+			m.GET("/unassigned", machineController.GetUnassignedMachinesController())
 			m.GET("", machineController.GetAllMachinesController())
 			m.PUT("", machineController.UpdateMachineController())
 		}
@@ -75,6 +76,7 @@ func Routes(
 			mo.POST("", monitorController.CreateMonitorController())
 			mo.GET("/id", monitorController.FindByIDController())
 			mo.GET("/employee_id", monitorController.FindByEmployeeIDController())
+			mo.GET("/unassigned", monitorController.GetUnassignedMonitorsController())
 			mo.GET("", monitorController.GetAllMonitorsController())
 			mo.PUT("", monitorController.UpdateMonitorController())
 		}

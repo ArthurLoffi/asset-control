@@ -74,3 +74,15 @@ func (r *MachineRepository) FindByEmployeeID(ctx context.Context, employeeID uin
 	}
 	return result, nil
 }
+
+func (r *MachineRepository) GetUnassignedMachines(ctx context.Context) ([]dto.MachineDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{"employee_id": nil})
+	if err != nil {
+		return nil, err
+	}
+	result := make([]dto.MachineDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.MachineDto(document))
+	}
+	return result, nil
+}

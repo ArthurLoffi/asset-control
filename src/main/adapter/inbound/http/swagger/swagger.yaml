@@ -1017,6 +1017,19 @@ paths:
       summary: List deactivation history separately from active inventory
       tags:
       - deactivation
+  /machines/unassigned:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List active machines without an assigned employee
+      tags:
+      - machines
   /monitors:
     get:
       description: Retorna todos os monitores cadastrados.
@@ -1254,6 +1267,19 @@ paths:
       summary: List deactivation history separately from active inventory
       tags:
       - deactivation
+  /monitors/unassigned:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List active monitors without an assigned employee
+      tags:
+      - monitors
   /phones:
     get:
       description: Retorna todos os telefones cadastrados.

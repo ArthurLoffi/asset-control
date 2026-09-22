@@ -32,6 +32,36 @@ func (r *DeactivationRepository) collection(resource string) (*mongo.Collection,
 }
 
 func (r *DeactivationRepository) Deactivate(ctx context.Context, resource string, id uint64) (dto.DeactivationDto, error) {
+	if resource != "employees" {
+		return r.deactivateOne(ctx, resource, id)
+	}
+	session, err := r.db.Client().StartSession()
+	if err != nil {
+		return dto.DeactivationDto{}, persistenceError(err)
+	}
+	defer session.EndSession(context.Background())
+	value, err := session.WithTransaction(ctx, func(txCtx context.Context) (any, error) {
+		result, err := r.deactivateOne(txCtx, resource, id)
+		if err != nil {
+			return nil, err
+		}
+		for _, collection := range []string{"machines", "monitors", "phones"} {
+			_, err := r.db.Collection(collection).UpdateMany(txCtx,
+				activeFilter(bson.M{"employee_id": id}),
+				bson.M{"$set": bson.M{"employee_id": nil}})
+			if err != nil {
+				return nil, persistenceError(err)
+			}
+		}
+		return result, nil
+	})
+	if err != nil {
+		return dto.DeactivationDto{}, persistenceError(err)
+	}
+	return value.(dto.DeactivationDto), nil
+}
+
+func (r *DeactivationRepository) deactivateOne(ctx context.Context, resource string, id uint64) (dto.DeactivationDto, error) {
 	var result dto.DeactivationDto
 	collection, err := r.collection(resource)
 	if err != nil {

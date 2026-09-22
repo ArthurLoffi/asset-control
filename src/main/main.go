@@ -13,8 +13,10 @@ import (
 	middleware "asset-control/src/main/adapter/inbound/http/middleware"
 	"asset-control/src/main/adapter/inbound/http/routes"
 	_ "asset-control/src/main/adapter/inbound/http/swagger"
+	"asset-control/src/main/adapter/outbound/cache"
 	"asset-control/src/main/adapter/outbound/data/database"
 	"asset-control/src/main/adapter/outbound/data/repository"
+	"asset-control/src/main/domain/ports"
 	"asset-control/src/main/usecase"
 
 	authController "github.com/Brasil-Novo/asset-control-auth/src/main/adapter/inbound/http/controller"
@@ -57,6 +59,10 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	cacheCfg, err := cache.ConfigFromEnv(cfg.Database)
+	if err != nil {
+		return err
+	}
 	db, err := database.Connect(ctx, cfg)
 	if err != nil {
 		return err
@@ -80,7 +86,22 @@ func run() error {
 	if err != nil {
 		return errors.New("could not create unique users.name index; check permissions and duplicate names")
 	}
-	r, err := newRouter(db, authCfg)
+	responseCache, err := cache.Connect(ctx, cacheCfg)
+	if err != nil {
+		return err
+	}
+	if responseCache != nil {
+		defer func() {
+			if err := responseCache.Close(); err != nil {
+				log.Printf("disconnect Redis: %v", err)
+			}
+		}()
+	}
+	var cachePort ports.InventoryCache
+	if responseCache != nil {
+		cachePort = responseCache
+	}
+	r, err := newRouter(db, authCfg, cachePort)
 	if err != nil {
 		return err
 	}
@@ -105,7 +126,7 @@ func run() error {
 	}
 }
 
-func newRouter(db *mongo.Database, authCfg security.Config) (*gin.Engine, error) {
+func newRouter(db *mongo.Database, authCfg security.Config, caches ...ports.InventoryCache) (*gin.Engine, error) {
 	tokens, err := security.NewTokens(authCfg.Secret, authCfg.TTL)
 	if err != nil {
 		return nil, err
@@ -151,6 +172,9 @@ func newRouter(db *mongo.Database, authCfg security.Config) (*gin.Engine, error)
 	r.Use(middleware.RateLimit())
 	r.Use(authMiddleware.RequireSession(tokens))
 	r.Use(middleware.AuditIdentity())
+	if len(caches) > 0 && caches[0] != nil {
+		r.Use(middleware.InventoryCache(caches[0]))
+	}
 
 	routes.Routes(
 		r,

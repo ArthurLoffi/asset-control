@@ -54,3 +54,7 @@ func (uc *MachineUseCase) FindByID(ctx context.Context, id uint64) (dto.MachineD
 func (uc *MachineUseCase) FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.MachineDto, error) {
 	return uc.repository.FindByEmployeeID(ctx, employeeID)
 }
+
+func (uc *MachineUseCase) GetUnassignedMachines(ctx context.Context) ([]dto.MachineDto, error) {
+	return uc.repository.GetUnassignedMachines(ctx)
+}

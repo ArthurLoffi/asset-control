@@ -72,3 +72,15 @@ func (r *MonitorRepository) FindByEmployeeID(ctx context.Context, employeeID uin
 	}
 	return result, nil
 }
+
+func (r *MonitorRepository) GetUnassignedMonitors(ctx context.Context) ([]dto.MonitorDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{"employee_id": nil})
+	if err != nil {
+		return nil, err
+	}
+	result := make([]dto.MonitorDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, dto.MonitorDto(document))
+	}
+	return result, nil
+}

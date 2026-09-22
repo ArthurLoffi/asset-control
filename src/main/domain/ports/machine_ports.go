@@ -12,4 +12,5 @@ type MachinePorts interface {
 	GetAllMachines(ctx context.Context) ([]dto.MachineDto, error)
 	FindByID(ctx context.Context, id uint64) (dto.MachineDto, error)
 	FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.MachineDto, error)
+	GetUnassignedMachines(ctx context.Context) ([]dto.MachineDto, error)
 }

@@ -1170,6 +1170,26 @@ const docTemplate = `{
                 }
             }
         },
+        "/machines/unassigned": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "machines"
+                ],
+                "summary": "List active machines without an assigned employee",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/monitors": {
             "get": {
                 "description": "Retorna todos os monitores cadastrados.",
@@ -1520,6 +1540,26 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/monitors/unassigned": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "monitors"
+                ],
+                "summary": "List active monitors without an assigned employee",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
