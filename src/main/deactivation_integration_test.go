@@ -134,3 +134,80 @@ func TestConcurrentDeactivationPreservesTimestamp(t *testing.T) {
 		}
 	}
 }
+
+func TestEmployeeDeactivationUnassignsActiveEquipment(t *testing.T) {
+	db := testDatabase(t)
+	ctx := context.Background()
+	if _, err := db.Collection("employees").InsertOne(ctx, bson.M{"id": 5}); err != nil {
+		t.Fatal(err)
+	}
+	for _, resource := range []string{"machines", "monitors", "phones"} {
+		_, err := db.Collection(resource).InsertMany(ctx, []any{
+			bson.M{"id": 1, "employee_id": 5},
+			bson.M{"id": 2, "employee_id": 6},
+			bson.M{"id": 3, "employee_id": 5, "deactivated_at": time.Now().UTC()},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	router := testRouter(t, db)
+	first := object(t, callAPI(t, router, "POST", "/api/employees/deactivate?id=5", nil, 200))
+	repeated := object(t, callAPI(t, router, "POST", "/api/employees/deactivate?id=5", nil, 200))
+	if first["deactivated_at"] != repeated["deactivated_at"] {
+		t.Fatal("retry changed employee deactivation timestamp")
+	}
+	for _, resource := range []string{"machines", "monitors", "phones"} {
+		for id, want := range map[int]any{1: nil, 2: int32(6), 3: int32(5)} {
+			var record bson.M
+			if err := db.Collection(resource).FindOne(ctx, bson.M{"id": id}).Decode(&record); err != nil {
+				t.Fatal(err)
+			}
+			if record["employee_id"] != want {
+				t.Fatalf("%s ID %d assignment: got %v, want %v", resource, id, record["employee_id"], want)
+			}
+		}
+	}
+}
+
+func TestUnassignedMachineSearchUsesActiveScope(t *testing.T) {
+	db := testDatabase(t)
+	ctx := context.Background()
+	_, err := db.Collection("machines").InsertMany(ctx, []any{
+		bson.M{"id": 1, "employee_id": nil},
+		bson.M{"id": 2},
+		bson.M{"id": 3, "employee_id": 5},
+		bson.M{"id": 4, "employee_id": nil, "deactivated_at": time.Now().UTC()},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var machines []dto.MachineDto
+	if err := json.Unmarshal(callAPI(t, testRouter(t, db), "GET", "/api/machines/unassigned", nil, 200), &machines); err != nil {
+		t.Fatal(err)
+	}
+	if len(machines) != 2 || machines[0].ID != 1 || machines[1].ID != 2 {
+		t.Fatalf("unassigned machines: %+v", machines)
+	}
+}
+
+func TestUnassignedMonitorSearchUsesActiveScope(t *testing.T) {
+	db := testDatabase(t)
+	ctx := context.Background()
+	_, err := db.Collection("monitors").InsertMany(ctx, []any{
+		bson.M{"id": 1, "employee_id": nil},
+		bson.M{"id": 2},
+		bson.M{"id": 3, "employee_id": 5},
+		bson.M{"id": 4, "employee_id": nil, "deactivated_at": time.Now().UTC()},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var monitors []dto.MonitorDto
+	if err := json.Unmarshal(callAPI(t, testRouter(t, db), "GET", "/api/monitors/unassigned", nil, 200), &monitors); err != nil {
+		t.Fatal(err)
+	}
+	if len(monitors) != 2 || monitors[0].ID != 1 || monitors[1].ID != 2 {
+		t.Fatalf("unassigned monitors: %+v", monitors)
+	}
+}

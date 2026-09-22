@@ -216,3 +216,23 @@ func (ctl *MonitorController) FindByEmployeeIDController() gin.HandlerFunc {
 		})
 	}
 }
+
+// GetUnassignedMonitors godoc
+// @Summary      List active monitors without an assigned employee
+// @Tags         monitors
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Router       /monitors/unassigned [get]
+func (ctl *MonitorController) GetUnassignedMonitorsController() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		monitors, err := ctl.monitorUseCase.GetUnassignedMonitors(c.Request.Context())
+		if err != nil {
+			writeError(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"status": "unassigned monitors retrieved successfully",
+			"data":   monitors,
+		})
+	}
+}

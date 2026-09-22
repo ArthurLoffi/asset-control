@@ -195,3 +195,23 @@ func (ctl *MachineController) FindByEmployeeIDController() gin.HandlerFunc {
 		})
 	}
 }
+
+// GetUnassignedMachines godoc
+// @Summary      List active machines without an assigned employee
+// @Tags         machines
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Router       /machines/unassigned [get]
+func (ctl *MachineController) GetUnassignedMachinesController() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		machines, err := ctl.machineUseCase.GetUnassignedMachines(c.Request.Context())
+		if err != nil {
+			writeError(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"status": "unassigned machines retrieved successfully",
+			"data":   machines,
+		})
+	}
+}

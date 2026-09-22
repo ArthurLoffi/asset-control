@@ -39,7 +39,10 @@ Employees, machines, phones, monitors, printers, and emails support deactivation
 POST /api/<resource>/deactivate?id=<id> sets the database timestamp once and
 preserves the record. Missing/null deactivated_at means active (including legacy
 imports). All ordinary lists, searches, assignment lookups, and updates use the
-active scope. Deactivating an employee does not cascade to assigned equipment.
+active scope. Deactivating an employee atomically unassigns active machines,
+monitors, and phones; it does not deactivate the equipment.
+`GET /api/machines/unassigned` and `GET /api/monitors/unassigned` list active
+records with null or missing `employee_id`, sorted by ID.
 GET /api/<resource>/inactive?after=0&limit=50 returns only deactivation IDs and
 timestamps, with next_after cursor pagination (limit 1-100). Keep history requests
 separate from active inventory and dashboard reads. Never reset a timestamp on

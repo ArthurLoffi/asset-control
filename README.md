@@ -6,7 +6,8 @@ POST responses now include the saved record's generated `id` and `created_at`.
 
 ## Run
 
-Requires Go 1.26+ and MongoDB 4.4+ (integration tests use MongoDB 8.0).
+Requires Go 1.26+ and MongoDB 4.4+ on a replica set or sharded cluster
+for transactional updates and employee deactivation (integration tests use MongoDB 8.0).
 
 ```sh
 cp .env.example .env
@@ -25,11 +26,22 @@ environment. Do not commit credentials.
 | `MONGODB_URI` | Required MongoDB connection URI, including authentication/TLS options when applicable. |
 | `MONGODB_DATABASE` | Required database containing the migrated collections. |
 | `MONGODB_TIMEOUT` | Positive Go duration for MongoDB operations and startup checks; defaults to `10s`. |
+| `REDIS_URL` | Optional Redis URL for caching protected inventory GET responses. If set, Redis must be reachable at startup. |
+| `REDIS_CACHE_TTL` | Positive Go duration for cached responses; defaults to `1m`. |
 
 Startup verifies connectivity, creates indexes, and initializes numeric ID
 counters before accepting requests. SIGINT/SIGTERM drains HTTP requests and
 closes the MongoDB connection pool. Request cancellations propagate to queries.
 The connection behavior follows the [MongoDB Go driver context documentation](https://www.mongodb.com/docs/drivers/go/current/context/).
+
+When `REDIS_URL` is configured, successful employee, machine, monitor, phone,
+printer, and organization GET responses are cached in Redis. Each successful
+create, update, or deactivation advances that resource's cache version, so later
+reads use fresh data. Failed writes do not invalidate the cache. Email responses
+are excluded because they contain password fields. Redis errors during requests
+fall back to MongoDB; response entries expire after `REDIS_CACHE_TTL`. If Redis
+is unavailable during a successful write, an older entry can remain until that
+expiry, so keep the TTL short for deployments that need a tighter bound.
 
 ## Migrated data contract
 
@@ -105,8 +117,9 @@ Run integration tests against a disposable local MongoDB:
 
 ```sh
 docker run --detach --rm --name asset-control-mongo-test \
-  -p 127.0.0.1:27028:27017 mongo:8.0
-MONGODB_TEST_URI=mongodb://127.0.0.1:27028 make test-integration
+  -p 127.0.0.1:27028:27017 mongo:8.0 --replSet rs0 --bind_ip_all
+docker exec asset-control-mongo-test mongosh --quiet --eval 'rs.initiate()'
+MONGODB_TEST_URI='mongodb://127.0.0.1:27028/?directConnection=true' make test-integration
 docker stop asset-control-mongo-test
 ```
 
@@ -158,7 +171,8 @@ For employees, machines, phones, monitors, printers, and emails:
   Retries return the original timestamp; missing IDs return 404.
 - Ordinary lists, searches, employee assignment lookups, and PUT operations only
   access active records. Legacy documents with no timestamp (or null) remain active.
-  Deactivating an employee does not deactivate equipment assigned to that employee.
+  Deactivating an employee atomically clears their assignment from active machines,
+  monitors, and phones. The equipment remains active; inactive equipment is untouched.
 - `GET /api/<resource>/inactive?after=0&limit=50` returns a separate history page:
   `{status, data: {records: [{id, deactivated_at}], next_after}}`. Pass `next_after`
   as the next `after`; null means the last page. Limit is 1-100. The endpoint returns
@@ -166,3 +180,7 @@ For employees, machines, phones, monitors, printers, and emails:
 - Startup creates indexes for active lists, employee assignments, and inactive
   history. Dashboard requests never load inactive history. No migration of legacy
   records is required, and ordinary writes cannot reactivate records.
+
+`GET /api/machines/unassigned` lists only active machines with null or missing
+`employee_id`, in ascending ID order. An empty result is `data: []`.
+`GET /api/monitors/unassigned` applies the same filter to monitors.

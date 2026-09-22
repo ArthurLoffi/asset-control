@@ -54,3 +54,7 @@ func (uc *MonitorUseCase) FindByID(ctx context.Context, id uint64) (dto.MonitorD
 func (uc *MonitorUseCase) FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.MonitorDto, error) {
 	return uc.repository.FindByEmployeeID(ctx, employeeID)
 }
+
+func (uc *MonitorUseCase) GetUnassignedMonitors(ctx context.Context) ([]dto.MonitorDto, error) {
+	return uc.repository.GetUnassignedMonitors(ctx)
+}

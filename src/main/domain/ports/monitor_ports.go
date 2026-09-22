@@ -12,4 +12,5 @@ type MonitorPorts interface {
 	GetAllMonitors(ctx context.Context) ([]dto.MonitorDto, error)
 	FindByID(ctx context.Context, id uint64) (dto.MonitorDto, error)
 	FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.MonitorDto, error)
+	GetUnassignedMonitors(ctx context.Context) ([]dto.MonitorDto, error)
 }
