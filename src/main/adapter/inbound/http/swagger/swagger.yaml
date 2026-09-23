@@ -1,5 +1,14 @@
 basePath: /api
 definitions:
+  dto.ChangedFieldDto:
+    properties:
+      after:
+        type: string
+      before:
+        type: string
+      field:
+        type: string
+    type: object
   dto.CreateEmailDto:
     properties:
       email:
@@ -223,6 +232,36 @@ definitions:
       status:
         type: string
     type: object
+  dto.RecentChangeDto:
+    properties:
+      action:
+        type: string
+      changed_fields:
+        items:
+          $ref: '#/definitions/dto.ChangedFieldDto'
+        type: array
+      id:
+        type: string
+      resource:
+        type: string
+      resource_id:
+        type: integer
+      time:
+        type: string
+      user_id:
+        type: string
+      user_name:
+        type: string
+    type: object
+  dto.RecentChangesResponseDto:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.RecentChangeDto'
+        type: array
+      status:
+        type: string
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -235,6 +274,30 @@ info:
   title: Asset control API
   version: v0.3.0
 paths:
+  /changes/recent:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RecentChangesResponseDto'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List the ten most recent inventory updates
+      tags:
+      - changes
   /emails:
     get:
       description: Retorna todos os registros de usableEmails em ordem crescente de

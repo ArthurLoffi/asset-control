@@ -17,6 +17,11 @@ const UsableEmailsCollection = "usableEmails"
 // backwards, including when multiple application instances start together.
 // Run before accepting writes; duplicate imported IDs fail startup.
 func EnsureSchema(ctx context.Context, db *mongo.Database) error {
+	if _, err := db.Collection("changes").Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.D{{Key: "time", Value: -1}, {Key: "_id", Value: -1}},
+	}); err != nil {
+		return fmt.Errorf("create indexes for changes: %w", err)
+	}
 	for _, name := range []string{"employees", "machines", "monitors", "phones", "printers", "branches", "departments", UsableEmailsCollection} {
 		collection := db.Collection(name)
 		indexes := []mongo.IndexModel{{Keys: bson.D{{Key: "id", Value: 1}}, Options: options.Index().SetUnique(true)}}

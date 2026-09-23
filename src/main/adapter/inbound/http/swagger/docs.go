@@ -18,6 +18,43 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/changes/recent": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "changes"
+                ],
+                "summary": "List the ten most recent inventory updates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RecentChangesResponseDto"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/emails": {
             "get": {
                 "description": "Retorna todos os registros de usableEmails em ordem crescente de ID, incluindo password_hash em texto puro, exatamente como armazenado. Retorna data como uma lista vazia quando não houver registros.",
@@ -2368,6 +2405,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.ChangedFieldDto": {
+            "type": "object",
+            "properties": {
+                "after": {
+                    "type": "string"
+                },
+                "before": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateEmailDto": {
             "type": "object",
             "required": [
@@ -2674,6 +2725,52 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/dto.InactivePageDto"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RecentChangeDto": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "changed_fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ChangedFieldDto"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "resource_id": {
+                    "type": "integer"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RecentChangesResponseDto": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.RecentChangeDto"
+                    }
                 },
                 "status": {
                     "type": "string"

@@ -18,8 +18,10 @@ func Routes(
 	utilsController *controller.UtilsController,
 	emailController *controller.EmailController,
 	deactivationController *controller.DeactivationController,
+	recentChangeController *controller.RecentChangeController,
 ) {
 	api := r.Group("/api")
+	api.GET("/changes/recent", recentChangeController.ListRecent)
 	for _, resource := range []string{"employees", "machines", "phones", "monitors", "printers", "emails"} {
 		api.POST("/"+resource+"/deactivate", deactivationController.Deactivate(resource))
 		api.GET("/"+resource+"/inactive", deactivationController.ListInactive(resource))
