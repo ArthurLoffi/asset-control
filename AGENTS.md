@@ -20,6 +20,10 @@ Use gin.Logger() for HTTP request logs; retain the shared request-ID middleware
 for response headers and login auditing without duplicating request logs.
 Apply request rate limiting after public auth routes and before protected
 inventory routes, with deterministic middleware coverage.
+Trust `CF-Connecting-IP` for client identity only when the immediate peer is
+local cloudflared (`127.0.0.1` or `::1`); keep direct forwarded headers
+untrusted. Rate limiting and login attempt protection use the validated Gin
+client IP. For HTTPS, configure an exact frontend origin and Secure cookie.
 
 ## Tests
 

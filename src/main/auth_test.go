@@ -3,19 +3,93 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Brasil-Novo/asset-control-auth/src/main/adapter/security"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Brasil-Novo/asset-control-auth/src/main/adapter/security"
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func testAuthConfig() security.Config {
 	return security.Config{Secret: strings.Repeat("test-only-key-", 3), TTL: time.Hour, Secure: false, Origins: []string{"http://localhost:5173"}}
 }
+
+func TestTunnelClientIPOnlyFromLocalProxy(t *testing.T) {
+	r := gin.New()
+	if err := configureClientIP(r); err != nil {
+		t.Fatal(err)
+	}
+	r.GET("/ip", func(c *gin.Context) { c.String(http.StatusOK, c.ClientIP()) })
+	for _, tc := range []struct {
+		name, remote, cloudflareIP, forwardedFor, want string
+	}{
+		{"cloudflared IPv6", "[::1]:1234", "203.0.113.10", "198.51.100.1", "203.0.113.10"},
+		{"cloudflared IPv4", "127.0.0.1:1234", "2001:db8::10", "198.51.100.1", "2001:db8::10"},
+		{"direct client", "192.0.2.10:1234", "203.0.113.10", "198.51.100.1", "192.0.2.10"},
+		{"missing Cloudflare IP", "[::1]:1234", "", "198.51.100.1", "::1"},
+		{"invalid Cloudflare IP", "[::1]:1234", "not-an-ip", "198.51.100.1", "::1"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/ip", nil)
+			req.RemoteAddr = tc.remote
+			req.Header.Set(gin.PlatformCloudflare, tc.cloudflareIP)
+			req.Header.Set("X-Forwarded-For", tc.forwardedFor)
+			response := httptest.NewRecorder()
+			r.ServeHTTP(response, req)
+			if response.Code != http.StatusOK || response.Body.String() != tc.want {
+				t.Fatalf("status=%d client_ip=%q, want %q", response.Code, response.Body.String(), tc.want)
+			}
+		})
+	}
+}
+
+func TestSessionBehindTrustedTunnel(t *testing.T) {
+	client, err := mongo.Connect(options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = client.Disconnect(context.Background()) }()
+	router, err := newRouter(client.Database("unused"), testAuthConfig())
+	if err != nil {
+		t.Fatal(err)
+	}
+	tokens, err := security.NewTokens(testAuthConfig().Secret, time.Hour)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _, err := tokens.Generate("test-user", "Test User")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name, cookie string
+		want         int
+	}{
+		{"valid cookie", raw, http.StatusOK},
+		{"missing cookie", "", http.StatusUnauthorized},
+		{"invalid cookie", "forged", http.StatusUnauthorized},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/api/auth/session", nil)
+			req.RemoteAddr = "[::1]:1234"
+			req.Header.Set(gin.PlatformCloudflare, "203.0.113.10")
+			if tc.cookie != "" {
+				req.AddCookie(&http.Cookie{Name: security.CookieName, Value: tc.cookie})
+			}
+			response := httptest.NewRecorder()
+			router.ServeHTTP(response, req)
+			if response.Code != tc.want {
+				t.Fatalf("status=%d, want %d: %s", response.Code, tc.want, response.Body.String())
+			}
+		})
+	}
+}
+
 func testRouter(t *testing.T, db *mongo.Database) http.Handler {
 	t.Helper()
 	cfg := testAuthConfig()

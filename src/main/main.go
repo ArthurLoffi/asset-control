@@ -166,7 +166,9 @@ func newRouter(db *mongo.Database, authCfg security.Config, caches ...ports.Inve
 	emailController := controller.NewEmailController(emailUseCase)
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
-	_ = r.SetTrustedProxies(nil)
+	if err := configureClientIP(r); err != nil {
+		return nil, err
+	}
 	r.Use(gin.Logger(), authMiddleware.Recovery(), authMiddleware.RequestID(), authMiddleware.BrowserSecurity(authCfg.Origins))
 	authRoutes.Register(r.Group("/api"), authController.NewAuthController(login, authCfg.Secure), tokens)
 	// All inventory routes and Swagger require a verified session.
@@ -191,4 +193,11 @@ func newRouter(db *mongo.Database, authCfg security.Config, caches ...ports.Inve
 	)
 
 	return r, nil
+}
+
+func configureClientIP(r *gin.Engine) error {
+	// cloudflared connects locally and supplies the authoritative Cloudflare IP.
+	// Only a local peer may supply it; direct clients cannot spoof forwarded IPs.
+	r.RemoteIPHeaders = []string{gin.PlatformCloudflare}
+	return r.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 }

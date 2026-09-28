@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"net"
 	"sync"
 	"time"
 
@@ -56,18 +55,9 @@ func getVisitor(ip string) *rate.Limiter {
 	return limiter
 }
 
-func extractIP(c *gin.Context) string {
-	ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
-	if err != nil {
-		return c.Request.RemoteAddr
-	}
-
-	return ip
-}
-
 func RateLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ip := extractIP(c)
+		ip := c.ClientIP()
 		limiter := getVisitor(ip)
 
 		if !limiter.Allow() {
