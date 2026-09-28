@@ -159,6 +159,15 @@ Use the frontend at the same origin/site as the API. Login and inventory request
 share the `/api` base URL. Read `../asset-control-auth/README.md` for the full
 contract, deployment layout, user provisioning, and process-local guessing-guard
 limitations. Logout clears the browser cookie; it does not revoke copied JWTs.
+
+For an HTTPS frontend behind Cloudflare Tunnel, set `AUTH_COOKIE_SECURE=true`
+and add the frontend's exact HTTPS origin to `AUTH_ALLOWED_ORIGINS`. Browser
+login sends an `Origin` header even when `/api` is same-origin; an origin absent
+from that list receives 403 before a session cookie is created. Restart the API
+after changing these settings. Gin trusts `CF-Connecting-IP` only when the
+immediate peer is local cloudflared (`127.0.0.1` or `::1`). Keep the API listener
+private to the tunnel; forwarded headers from remote direct clients are ignored.
+
 Integration inventory tests now supply signed test cookies and CSRF headers.
 
 ## Inventory deactivation
