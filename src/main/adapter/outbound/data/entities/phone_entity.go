@@ -11,6 +11,7 @@ type Phone struct {
 	HasChip      *bool     `bson:"has_chip" json:"has_chip"`
 	Situation    string    `bson:"situation" json:"situation"`
 	EmployeeID   *uint64   `bson:"employee_id" json:"employee_id"`
+	EmployeeIDs  []uint64  `bson:"employee_ids" json:"employee_ids"`
 	CreatedAt    time.Time `bson:"created_at" json:"created_at"`
 }
 

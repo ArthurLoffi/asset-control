@@ -39,6 +39,14 @@ Update AGENTS.md in every commit, consistent with the sibling projects.
 
 ## Deactivation
 
+Employee contacts accept `emails` (one or more distinct addresses) and
+`phones` (distinct numbers). Machine, monitor, and phone assignments accept
+`employee_ids` (distinct positive IDs). Preserve the singular `email`, `phone`,
+and `employee_id` fields as the first value for legacy clients and imported
+records. Assignment searches match any associated employee; unassigned lists
+require no associated employee. Employee deactivation removes only that
+employee from each active equipment record.
+
 Employees, machines, phones, monitors, printers, and emails support deactivation.
 POST /api/<resource>/deactivate?id=<id> sets the database timestamp once and
 preserves the record. Missing/null deactivated_at means active (including legacy

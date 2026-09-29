@@ -26,20 +26,39 @@ func employeeDocument(input dto.CreateEmployeeDto) entities.Employee {
 	return entities.Employee{
 		Name:         input.Name,
 		Phone:        input.Phone,
+		Phones:       input.Phones,
 		Email:        input.Email,
+		Emails:       input.Emails,
 		BranchID:     input.BranchID,
 		DepartmentID: input.DepartmentID,
 	}
 }
 
+func employeeDTO(document entities.Employee) dto.EmployeeDto {
+	result := dto.EmployeeDto(document)
+	if result.Emails == nil {
+		result.Emails = []string{}
+		if result.Email != "" {
+			result.Emails = append(result.Emails, result.Email)
+		}
+	}
+	if result.Phones == nil {
+		result.Phones = []string{}
+		if result.Phone != "" {
+			result.Phones = append(result.Phones, result.Phone)
+		}
+	}
+	return result
+}
+
 func (r *EmployeeRepository) CreateEmployee(ctx context.Context, input dto.CreateEmployeeDto) (dto.EmployeeDto, error) {
 	document, err := r.documents.create(ctx, employeeDocument(input))
-	return dto.EmployeeDto(document), err
+	return employeeDTO(document), err
 }
 
 func (r *EmployeeRepository) UpdateEmployee(ctx context.Context, id uint64, input dto.CreateEmployeeDto) (dto.EmployeeDto, error) {
 	document, err := r.documents.update(ctx, id, employeeDocument(input))
-	return dto.EmployeeDto(document), err
+	return employeeDTO(document), err
 }
 
 func (r *EmployeeRepository) GetAllEmployees(ctx context.Context) ([]dto.EmployeeDto, error) {
@@ -49,17 +68,17 @@ func (r *EmployeeRepository) GetAllEmployees(ctx context.Context) ([]dto.Employe
 	}
 	result := make([]dto.EmployeeDto, 0, len(documents))
 	for _, document := range documents {
-		result = append(result, dto.EmployeeDto(document))
+		result = append(result, employeeDTO(document))
 	}
 	return result, nil
 }
 
 func (r *EmployeeRepository) FindByID(ctx context.Context, id uint64) (dto.EmployeeDto, error) {
 	document, err := r.documents.findOne(ctx, bson.M{"id": id})
-	return dto.EmployeeDto(document), err
+	return employeeDTO(document), err
 }
 
 func (r *EmployeeRepository) FindByName(ctx context.Context, name string) (dto.EmployeeDto, error) {
 	document, err := r.documents.findOne(ctx, bson.M{"name": bson.Regex{Pattern: regexp.QuoteMeta(name), Options: "i"}})
-	return dto.EmployeeDto(document), err
+	return employeeDTO(document), err
 }

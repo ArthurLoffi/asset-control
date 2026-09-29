@@ -146,6 +146,7 @@ func TestEmployeeDeactivationUnassignsActiveEquipment(t *testing.T) {
 			bson.M{"id": 1, "employee_id": 5},
 			bson.M{"id": 2, "employee_id": 6},
 			bson.M{"id": 3, "employee_id": 5, "deactivated_at": time.Now().UTC()},
+			bson.M{"id": 4, "employee_id": 5, "employee_ids": bson.A{5, 6}},
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -158,13 +159,19 @@ func TestEmployeeDeactivationUnassignsActiveEquipment(t *testing.T) {
 		t.Fatal("retry changed employee deactivation timestamp")
 	}
 	for _, resource := range []string{"machines", "monitors", "phones"} {
-		for id, want := range map[int]any{1: nil, 2: int32(6), 3: int32(5)} {
+		for id, want := range map[int]any{1: nil, 2: int32(6), 3: int32(5), 4: int64(6)} {
 			var record bson.M
 			if err := db.Collection(resource).FindOne(ctx, bson.M{"id": id}).Decode(&record); err != nil {
 				t.Fatal(err)
 			}
 			if record["employee_id"] != want {
 				t.Fatalf("%s ID %d assignment: got %v, want %v", resource, id, record["employee_id"], want)
+			}
+			if id == 4 {
+				ids, ok := record["employee_ids"].(bson.A)
+				if !ok || len(ids) != 1 || ids[0] != int64(6) {
+					t.Fatalf("%s shared assignment lost: %v", resource, record["employee_ids"])
+				}
 			}
 		}
 	}
@@ -178,6 +185,8 @@ func TestUnassignedMachineSearchUsesActiveScope(t *testing.T) {
 		bson.M{"id": 2},
 		bson.M{"id": 3, "employee_id": 5},
 		bson.M{"id": 4, "employee_id": nil, "deactivated_at": time.Now().UTC()},
+		bson.M{"id": 5, "employee_id": nil, "employee_ids": bson.A{5}},
+		bson.M{"id": 6, "employee_id": nil, "employee_ids": bson.A{}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -186,7 +195,7 @@ func TestUnassignedMachineSearchUsesActiveScope(t *testing.T) {
 	if err := json.Unmarshal(callAPI(t, testRouter(t, db), "GET", "/api/machines/unassigned", nil, 200), &machines); err != nil {
 		t.Fatal(err)
 	}
-	if len(machines) != 2 || machines[0].ID != 1 || machines[1].ID != 2 {
+	if len(machines) != 3 || machines[0].ID != 1 || machines[1].ID != 2 || machines[2].ID != 6 {
 		t.Fatalf("unassigned machines: %+v", machines)
 	}
 }
@@ -199,6 +208,8 @@ func TestUnassignedMonitorSearchUsesActiveScope(t *testing.T) {
 		bson.M{"id": 2},
 		bson.M{"id": 3, "employee_id": 5},
 		bson.M{"id": 4, "employee_id": nil, "deactivated_at": time.Now().UTC()},
+		bson.M{"id": 5, "employee_id": nil, "employee_ids": bson.A{5}},
+		bson.M{"id": 6, "employee_id": nil, "employee_ids": bson.A{}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -207,7 +218,7 @@ func TestUnassignedMonitorSearchUsesActiveScope(t *testing.T) {
 	if err := json.Unmarshal(callAPI(t, testRouter(t, db), "GET", "/api/monitors/unassigned", nil, 200), &monitors); err != nil {
 		t.Fatal(err)
 	}
-	if len(monitors) != 2 || monitors[0].ID != 1 || monitors[1].ID != 2 {
+	if len(monitors) != 3 || monitors[0].ID != 1 || monitors[1].ID != 2 || monitors[2].ID != 6 {
 		t.Fatalf("unassigned monitors: %+v", monitors)
 	}
 }

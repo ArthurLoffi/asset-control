@@ -2441,7 +2441,6 @@
             "required": [
                 "branch_id",
                 "department_id",
-                "email",
                 "name"
             ],
             "properties": {
@@ -2457,6 +2456,12 @@
                     "type": "string",
                     "maxLength": 255
                 },
+                "emails": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "name": {
                     "type": "string",
                     "maxLength": 255
@@ -2464,6 +2469,12 @@
                 "phone": {
                     "type": "string",
                     "maxLength": 20
+                },
+                "phones": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2482,6 +2493,12 @@
                 "employee_id": {
                     "type": "integer",
                     "maximum": 9223372036854776000
+                },
+                "employee_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "has_keyboard": {
                     "type": "boolean"
@@ -2533,6 +2550,12 @@
                     "type": "integer",
                     "maximum": 9223372036854776000
                 },
+                "employee_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "has_monitor": {
                     "type": "boolean"
                 },
@@ -2560,6 +2583,12 @@
                 "employee_id": {
                     "type": "integer",
                     "maximum": 9223372036854776000
+                },
+                "employee_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "equipament": {
                     "type": "string",

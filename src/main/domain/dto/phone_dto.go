@@ -11,5 +11,6 @@ type PhoneDto struct {
 	HasChip      *bool     `json:"has_chip"`
 	Situation    string    `json:"situation"`
 	EmployeeID   *uint64   `json:"employee_id"`
+	EmployeeIDs  []uint64  `json:"employee_ids"`
 	CreatedAt    time.Time `json:"created_at"`
 }

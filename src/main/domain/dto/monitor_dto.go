@@ -12,5 +12,6 @@ type MonitorDto struct {
 	MonitorCondition *string   `json:"monitor_condition"`
 	Situation        string    `json:"situation"`
 	EmployeeID       *uint64   `json:"employee_id"`
+	EmployeeIDs      []uint64  `json:"employee_ids"`
 	CreatedAt        time.Time `json:"created_at"`
 }

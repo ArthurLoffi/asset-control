@@ -33,17 +33,24 @@ func machineDocument(input dto.CreateMachineDto) entities.Machine {
 		MachineCondition: input.MachineCondition,
 		Situation:        input.Situation,
 		EmployeeID:       input.EmployeeID,
+		EmployeeIDs:      input.EmployeeIDs,
 	}
+}
+
+func machineDTO(document entities.Machine) dto.MachineDto {
+	result := dto.MachineDto(document)
+	result.EmployeeIDs = effectiveEmployeeIDs(result.EmployeeID, result.EmployeeIDs)
+	return result
 }
 
 func (r *MachineRepository) CreateMachine(ctx context.Context, input dto.CreateMachineDto) (dto.MachineDto, error) {
 	document, err := r.documents.create(ctx, machineDocument(input))
-	return dto.MachineDto(document), err
+	return machineDTO(document), err
 }
 
 func (r *MachineRepository) UpdateMachine(ctx context.Context, id uint64, input dto.CreateMachineDto) (dto.MachineDto, error) {
 	document, err := r.documents.update(ctx, id, machineDocument(input))
-	return dto.MachineDto(document), err
+	return machineDTO(document), err
 }
 
 func (r *MachineRepository) GetAllMachines(ctx context.Context) ([]dto.MachineDto, error) {
@@ -53,36 +60,36 @@ func (r *MachineRepository) GetAllMachines(ctx context.Context) ([]dto.MachineDt
 	}
 	result := make([]dto.MachineDto, 0, len(documents))
 	for _, document := range documents {
-		result = append(result, dto.MachineDto(document))
+		result = append(result, machineDTO(document))
 	}
 	return result, nil
 }
 
 func (r *MachineRepository) FindByID(ctx context.Context, id uint64) (dto.MachineDto, error) {
 	document, err := r.documents.findOne(ctx, bson.M{"id": id})
-	return dto.MachineDto(document), err
+	return machineDTO(document), err
 }
 
 func (r *MachineRepository) FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.MachineDto, error) {
-	documents, err := r.documents.find(ctx, bson.M{"employee_id": employeeID})
+	documents, err := r.documents.find(ctx, assignedTo(employeeID))
 	if err != nil {
 		return nil, err
 	}
 	result := make([]dto.MachineDto, 0, len(documents))
 	for _, document := range documents {
-		result = append(result, dto.MachineDto(document))
+		result = append(result, machineDTO(document))
 	}
 	return result, nil
 }
 
 func (r *MachineRepository) GetUnassignedMachines(ctx context.Context) ([]dto.MachineDto, error) {
-	documents, err := r.documents.find(ctx, bson.M{"employee_id": nil})
+	documents, err := r.documents.find(ctx, unassignedFilter())
 	if err != nil {
 		return nil, err
 	}
 	result := make([]dto.MachineDto, 0, len(documents))
 	for _, document := range documents {
-		result = append(result, dto.MachineDto(document))
+		result = append(result, machineDTO(document))
 	}
 	return result, nil
 }

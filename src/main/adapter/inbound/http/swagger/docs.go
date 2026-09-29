@@ -2447,7 +2447,6 @@ const docTemplate = `{
             "required": [
                 "branch_id",
                 "department_id",
-                "email",
                 "name"
             ],
             "properties": {
@@ -2463,6 +2462,12 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255
                 },
+                "emails": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "name": {
                     "type": "string",
                     "maxLength": 255
@@ -2470,6 +2475,12 @@ const docTemplate = `{
                 "phone": {
                     "type": "string",
                     "maxLength": 20
+                },
+                "phones": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2488,6 +2499,12 @@ const docTemplate = `{
                 "employee_id": {
                     "type": "integer",
                     "maximum": 9223372036854776000
+                },
+                "employee_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "has_keyboard": {
                     "type": "boolean"
@@ -2539,6 +2556,12 @@ const docTemplate = `{
                     "type": "integer",
                     "maximum": 9223372036854776000
                 },
+                "employee_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "has_monitor": {
                     "type": "boolean"
                 },
@@ -2566,6 +2589,12 @@ const docTemplate = `{
                 "employee_id": {
                     "type": "integer",
                     "maximum": 9223372036854776000
+                },
+                "employee_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "equipament": {
                     "type": "string",

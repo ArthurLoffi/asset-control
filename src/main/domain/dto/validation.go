@@ -49,11 +49,75 @@ func validateSituation(value *string) error {
 
 func (input *CreateEmployeeDto) Validate() error {
 	input.Name = strings.TrimSpace(input.Name)
-	input.Email = strings.TrimSpace(input.Email)
+	if input.Emails == nil {
+		input.Emails = []string{input.Email}
+	}
+	if input.Phones == nil {
+		input.Phones = []string{}
+		if input.Phone != "" {
+			input.Phones = append(input.Phones, input.Phone)
+		}
+	}
+	if len(input.Emails) == 0 {
+		return fmt.Errorf("%w: at least one email is required", domain.ErrValidation)
+	}
+	for index := range input.Emails {
+		input.Emails[index] = strings.TrimSpace(input.Emails[index])
+	}
+	for index := range input.Phones {
+		input.Phones[index] = strings.TrimSpace(input.Phones[index])
+	}
+	if err := uniqueStrings("emails", input.Emails); err != nil {
+		return err
+	}
+	if err := uniqueStrings("phones", input.Phones); err != nil {
+		return err
+	}
+	input.Email = input.Emails[0]
+	input.Phone = ""
+	if len(input.Phones) > 0 {
+		input.Phone = input.Phones[0]
+	}
 	return validateInput(input)
 }
 
+func uniqueStrings(field string, values []string) error {
+	seen := make(map[string]bool, len(values))
+	for _, value := range values {
+		key := strings.ToLower(value)
+		if value == "" || seen[key] {
+			return fmt.Errorf("%w: %s must contain distinct nonempty values", domain.ErrValidation, field)
+		}
+		seen[key] = true
+	}
+	return nil
+}
+
+func normalizeEmployeeIDs(single **uint64, many *[]uint64) error {
+	if *many == nil {
+		*many = []uint64{}
+		if *single != nil {
+			*many = append(*many, **single)
+		}
+	}
+	seen := make(map[uint64]bool, len(*many))
+	for _, id := range *many {
+		if seen[id] {
+			return fmt.Errorf("%w: employee_ids must be distinct", domain.ErrValidation)
+		}
+		seen[id] = true
+	}
+	*single = nil
+	if len(*many) > 0 {
+		*single = &(*many)[0]
+	}
+	return nil
+}
+
 func (input *CreateMachineDto) Validate() error {
+	if err := normalizeEmployeeIDs(&input.EmployeeID, &input.EmployeeIDs); err != nil {
+		return err
+	}
 	input.User = strings.TrimSpace(input.User)
 	input.Model = strings.TrimSpace(input.Model)
 	input.SerialNumber = strings.TrimSpace(input.SerialNumber)
@@ -70,6 +134,9 @@ func (input *CreateMachineDto) Validate() error {
 }
 
 func (input *CreateMonitorDto) Validate() error {
+	if err := normalizeEmployeeIDs(&input.EmployeeID, &input.EmployeeIDs); err != nil {
+		return err
+	}
 	input.Model = strings.TrimSpace(input.Model)
 	if err := validateInput(input); err != nil {
 		return err
@@ -81,6 +148,9 @@ func (input *CreateMonitorDto) Validate() error {
 }
 
 func (input *CreatePhoneDto) Validate() error {
+	if err := normalizeEmployeeIDs(&input.EmployeeID, &input.EmployeeIDs); err != nil {
+		return err
+	}
 	input.Model = strings.TrimSpace(input.Model)
 	input.IMEI = strings.TrimSpace(input.IMEI)
 	input.SerialNumber = strings.TrimSpace(input.SerialNumber)
