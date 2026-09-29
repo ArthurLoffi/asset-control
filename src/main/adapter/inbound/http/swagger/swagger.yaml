@@ -37,16 +37,23 @@ definitions:
       email:
         maxLength: 255
         type: string
+      emails:
+        items:
+          type: string
+        type: array
       name:
         maxLength: 255
         type: string
       phone:
         maxLength: 20
         type: string
+      phones:
+        items:
+          type: string
+        type: array
     required:
     - branch_id
     - department_id
-    - email
     - name
     type: object
   dto.CreateMachineDto:
@@ -57,6 +64,10 @@ definitions:
       employee_id:
         maximum: 9223372036854776000
         type: integer
+      employee_ids:
+        items:
+          type: integer
+        type: array
       has_keyboard:
         type: boolean
       has_mouse:
@@ -95,6 +106,10 @@ definitions:
       employee_id:
         maximum: 9223372036854776000
         type: integer
+      employee_ids:
+        items:
+          type: integer
+        type: array
       has_monitor:
         type: boolean
       model:
@@ -117,6 +132,10 @@ definitions:
       employee_id:
         maximum: 9223372036854776000
         type: integer
+      employee_ids:
+        items:
+          type: integer
+        type: array
       equipament:
         maxLength: 100
         type: string

@@ -172,6 +172,13 @@ Integration inventory tests now supply signed test cookies and CSRF headers.
 
 ## Inventory deactivation
 
+Employee create and update requests accept `emails` and `phones` arrays. At
+least one distinct, valid email is required; phone numbers are optional. Machine,
+monitor, and phone requests accept distinct positive IDs in `employee_ids`.
+Responses retain `email`, `phone`, and `employee_id` as the first value and
+include the full arrays. Existing singular-only requests and imported records
+remain supported. Employee-ID lookups match any assignment.
+
 For employees, machines, phones, monitors, printers, and emails:
 
 - `POST /api/<resource>/deactivate?id=<id>` requires a session and browser CSRF
@@ -190,6 +197,6 @@ For employees, machines, phones, monitors, printers, and emails:
   history. Dashboard requests never load inactive history. No migration of legacy
   records is required, and ordinary writes cannot reactivate records.
 
-`GET /api/machines/unassigned` lists only active machines with null or missing
-`employee_id`, in ascending ID order. An empty result is `data: []`.
+`GET /api/machines/unassigned` lists only active machines with no employee in
+`employee_id` or `employee_ids`, in ascending ID order. An empty result is `data: []`.
 `GET /api/monitors/unassigned` applies the same filter to monitors.

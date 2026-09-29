@@ -46,11 +46,8 @@ func (r *DeactivationRepository) Deactivate(ctx context.Context, resource string
 			return nil, err
 		}
 		for _, collection := range []string{"machines", "monitors", "phones"} {
-			_, err := r.db.Collection(collection).UpdateMany(txCtx,
-				activeFilter(bson.M{"employee_id": id}),
-				bson.M{"$set": bson.M{"employee_id": nil}})
-			if err != nil {
-				return nil, persistenceError(err)
+			if err := r.removeEmployeeAssignments(txCtx, collection, id); err != nil {
+				return nil, err
 			}
 		}
 		return result, nil
@@ -59,6 +56,37 @@ func (r *DeactivationRepository) Deactivate(ctx context.Context, resource string
 		return dto.DeactivationDto{}, persistenceError(err)
 	}
 	return value.(dto.DeactivationDto), nil
+}
+
+func (r *DeactivationRepository) removeEmployeeAssignments(ctx context.Context, collection string, employeeID uint64) error {
+	coll := r.db.Collection(collection)
+	cursor, err := coll.Find(ctx, activeFilter(assignedTo(employeeID)),
+		options.Find().SetProjection(bson.M{"id": 1, "employee_id": 1, "employee_ids": 1}))
+	if err != nil {
+		return persistenceError(err)
+	}
+	defer cursor.Close(ctx)
+	var records []struct {
+		ID          uint64   `bson:"id"`
+		EmployeeID  *uint64  `bson:"employee_id"`
+		EmployeeIDs []uint64 `bson:"employee_ids"`
+	}
+	if err := cursor.All(ctx, &records); err != nil {
+		return persistenceError(err)
+	}
+	for _, record := range records {
+		remaining := withoutEmployeeID(effectiveEmployeeIDs(record.EmployeeID, record.EmployeeIDs), employeeID)
+		var first *uint64
+		if len(remaining) > 0 {
+			first = &remaining[0]
+		}
+		_, err := coll.UpdateOne(ctx, activeFilter(bson.M{"id": record.ID}),
+			bson.M{"$set": bson.M{"employee_id": first, "employee_ids": remaining}})
+		if err != nil {
+			return persistenceError(err)
+		}
+	}
+	return nil
 }
 
 func (r *DeactivationRepository) deactivateOne(ctx context.Context, resource string, id uint64) (dto.DeactivationDto, error) {

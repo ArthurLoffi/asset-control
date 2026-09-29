@@ -34,6 +34,7 @@ func EnsureSchema(ctx context.Context, db *mongo.Database) error {
 		if name == "machines" || name == "monitors" || name == "phones" {
 			indexes = append(indexes, mongo.IndexModel{Keys: bson.D{{Key: "employee_id", Value: 1}}})
 			indexes = append(indexes, mongo.IndexModel{Keys: bson.D{{Key: "employee_id", Value: 1}, {Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}})
+			indexes = append(indexes, mongo.IndexModel{Keys: bson.D{{Key: "employee_ids", Value: 1}, {Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}})
 		}
 		if _, err := collection.Indexes().CreateMany(ctx, indexes); err != nil {
 			return fmt.Errorf("create indexes for %s: %w", name, err)

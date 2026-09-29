@@ -14,6 +14,7 @@ type Machine struct {
 	MachineCondition *string   `bson:"machine_condition" json:"machine_condition"`
 	Situation        string    `bson:"situation" json:"situation"`
 	EmployeeID       *uint64   `bson:"employee_id" json:"employee_id"`
+	EmployeeIDs      []uint64  `bson:"employee_ids" json:"employee_ids"`
 	CreatedAt        time.Time `bson:"created_at" json:"created_at"`
 }
 
