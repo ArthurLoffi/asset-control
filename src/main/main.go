@@ -37,7 +37,7 @@ import (
 // @contact.name   Suporte BNTG
 // @contact.email  suporte@brasilnovo.com
 
-// @host      localhost:8080
+// @host      localhost:8060
 // @BasePath  /api
 
 // @externalDocs.description  OpenAPI
@@ -106,7 +106,7 @@ func run() error {
 		return err
 	}
 
-	server := &http.Server{Addr: ":8080", Handler: r, ReadHeaderTimeout: 5 * time.Second}
+	server := &http.Server{Addr: ":8060", Handler: r, ReadHeaderTimeout: 5 * time.Second}
 	serverErrors := make(chan error, 1)
 	go func() { serverErrors <- server.ListenAndServe() }()
 	select {
