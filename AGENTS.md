@@ -6,17 +6,25 @@ Go 1.26.5, Gin, the MongoDB v2 driver, and Redis for inventory caching.
 
 ## Architecture
 
-Hexagonal layout under `src/main`; dependencies point inward
-(infrastructure → application → domain):
+Modular monolith with hexagonal modules (ports and adapters):
 
-- `domain/`: DTOs, validation, domain errors, and audit types. No HTTP or database
-  dependencies.
-- `application/ports/`: interfaces implemented by infrastructure.
-- `application/usecase/`: business orchestration that depends only on ports.
-- `infrastructure/inbound/http/`: controllers, middleware, routes, and Swagger.
-- `infrastructure/outbound/`: Redis cache and MongoDB data (database, entities,
-  repository).
-- `main.go`: configuration and dependency wiring only.
+- `cmd/api/main.go`: reads configuration, connects MongoDB/Redis, calls
+  `app.New`, and serves HTTP. Nothing else.
+- `internal/app/`: composition root; registers every module and global
+  middleware. Generated Swagger lives in `internal/app/swagger`.
+- `internal/core/`: code shared by modules (config, exception, audit port,
+  database, cache, httpx and its middleware). Core never imports a module.
+- `internal/modules/<module>/`: `inventory` (employees, machines, monitors,
+  phones, printers, emails), `organization` (branches, departments), and
+  `audit` (change records and feed). Each has `domain/` (dto, exception),
+  `application/` (port, usecase), `infrastructure/` (inbound/http/adapter,
+  outbound/data/{adapter,schema}), and `module.go` with `Register`.
+
+Dependencies point inward (infrastructure → application → domain). Use cases
+depend only on ports. A module never imports another module: shared contracts
+go to `core` as interfaces and the owning module registers the implementation
+(for example `audit.Register` returns the `core/audit.Recorder`). File names use
+snake_case; tests sit next to the tested file.
 
 Preserve existing inventory routes, response envelopes, IDs, validation, and
 BSON mappings. Keep database queries cancellable.
@@ -26,7 +34,8 @@ BSON mappings. Keep database queries cancellable.
 Reuse the sibling `../asset-control-auth` module via go.mod; do not duplicate
 JWT, bcrypt, cookie, CORS, or guessing-protection implementations. It is a
 library without a server: this API owns the HTTP listener, configuration, and
-the shared MongoDB connection lifecycle, wired in `src/main/main.go`.
+the shared MongoDB connection lifecycle, wired in `cmd/api/main.go` and
+`internal/app/app.go`. The API reads `AUTH_*` variables and passes `auth.Config`.
 
 - Auth routes register before the session middleware; every inventory route and
   Swagger register after it.
@@ -65,7 +74,10 @@ changes:
 ## Changes and commits
 
 - Update CHANGELOG.md in every commit.
-- Keep changes focused; use short Conventional Commit subjects
-  (`type: imperative description`).
+- Keep changes focused; use short Conventional Commit subjects with scope
+  (`type(scope): imperative description`). Name branches `feat-<name>`,
+  `fix-<name>`, `refactor-<name>`, or `docs-<name>`.
+- Record non-obvious decisions in `agents/decisions/<branch>/`, failures in
+  `agents/failures/<branch>/`, and findings in `agents/findings/<branch>/`.
 - Do not add an AI co-author trailer.
 - Ask the human for approval before committing or opening a PR.

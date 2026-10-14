@@ -1,0 +1,95 @@
+package adapter
+
+import (
+	"context"
+
+	"asset-control/internal/modules/inventory/application/port"
+	"asset-control/internal/modules/inventory/domain/dto"
+	"asset-control/internal/modules/inventory/infrastructure/outbound/data/schema"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+)
+
+type MachineRepository struct {
+	documents documentRepository[schema.Machine]
+}
+
+var _ port.MachinePorts = (*MachineRepository)(nil)
+
+func NewMachineRepository(db *mongo.Database) *MachineRepository {
+	return &MachineRepository{documents: newDocumentRepository[schema.Machine](db, (schema.Machine{}).CollectionName())}
+}
+
+func machineDocument(input dto.CreateMachineDto) schema.Machine {
+	return schema.Machine{
+		User:             input.User,
+		AssetNumber:      input.AssetNumber,
+		Type:             input.Type,
+		Model:            input.Model,
+		SerialNumber:     input.SerialNumber,
+		HasKeyboard:      input.HasKeyboard,
+		HasMouse:         input.HasMouse,
+		MachineCondition: input.MachineCondition,
+		Situation:        input.Situation,
+		EmployeeID:       input.EmployeeID,
+		EmployeeIDs:      input.EmployeeIDs,
+	}
+}
+
+func machineDTO(document schema.Machine) dto.MachineDto {
+	result := dto.MachineDto(document)
+	result.EmployeeIDs = effectiveEmployeeIDs(result.EmployeeID, result.EmployeeIDs)
+	return result
+}
+
+func (r *MachineRepository) CreateMachine(ctx context.Context, input dto.CreateMachineDto) (dto.MachineDto, error) {
+	document, err := r.documents.create(ctx, machineDocument(input))
+	return machineDTO(document), err
+}
+
+func (r *MachineRepository) UpdateMachine(ctx context.Context, id uint64, input dto.CreateMachineDto) (dto.MachineDto, error) {
+	document, err := r.documents.update(ctx, id, machineDocument(input))
+	return machineDTO(document), err
+}
+
+func (r *MachineRepository) GetAllMachines(ctx context.Context) ([]dto.MachineDto, error) {
+	documents, err := r.documents.find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	result := make([]dto.MachineDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, machineDTO(document))
+	}
+	return result, nil
+}
+
+func (r *MachineRepository) FindByID(ctx context.Context, id uint64) (dto.MachineDto, error) {
+	document, err := r.documents.findOne(ctx, bson.M{"id": id})
+	return machineDTO(document), err
+}
+
+func (r *MachineRepository) FindByEmployeeID(ctx context.Context, employeeID uint64) ([]dto.MachineDto, error) {
+	documents, err := r.documents.find(ctx, assignedTo(employeeID))
+	if err != nil {
+		return nil, err
+	}
+	result := make([]dto.MachineDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, machineDTO(document))
+	}
+	return result, nil
+}
+
+func (r *MachineRepository) GetUnassignedMachines(ctx context.Context) ([]dto.MachineDto, error) {
+	documents, err := r.documents.find(ctx, unassignedFilter())
+	if err != nil {
+		return nil, err
+	}
+	result := make([]dto.MachineDto, 0, len(documents))
+	for _, document := range documents {
+		result = append(result, machineDTO(document))
+	}
+	return result, nil
+}

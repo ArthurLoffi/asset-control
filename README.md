@@ -12,10 +12,10 @@ for transactional updates and employee deactivation (integration tests use Mongo
 ```sh
 cp .env.example .env
 # Edit .env for your deployment.
-go run ./src/main
+go run ./cmd/api
 ```
 
-The server listens on port 8080; Swagger UI is at `/swagger/index.html`.
+The server listens on port 8060; Swagger UI is at `/swagger/index.html`.
 Run commands from the `asset-control` directory. Startup automatically reads
 `.env` from the current working directory; exported environment variables take
 precedence. The file is optional when configuration is supplied through the
@@ -53,7 +53,7 @@ be BSON dates, and nullable values should retain their BSON null/boolean types.
 
 Collections remain `employees`, `machines`, `monitors`, `phones`, `printers`,
 `branches`, and `departments`. The renamed email collection is **`usableEmails`**,
-recorded as `database.UsableEmailsCollection`. Email lookups are available through
+recorded as `database.UsableEmailsCollection` (`internal/core/database`). Email lookups are available through
 `GET /api/emails/id?id=42` and `GET /api/emails/user?user=Ana`.
 `GET /api/emails` lists every email in ascending ID order using the response
 `{ "status": "emails retrieved successfully", "data": [...] }`; an empty
@@ -105,6 +105,20 @@ Existing identification values are preserved when supplied; no placeholders
 are generated. Restart the API after updating it to apply this validation rule.
 Database failures return 500, missing records 404, conflicts 409, and operation
 timeouts 504. Internal database details are not exposed in responses.
+
+## Layout
+
+```text
+cmd/api/main.go                 # configuration, connections, HTTP server
+internal/app/                   # composition root (app.New) and generated Swagger
+internal/core/                  # config, exception, audit port, database, cache, httpx
+internal/modules/inventory/     # employees, machines, monitors, phones, printers, emails
+internal/modules/organization/  # branches and departments
+internal/modules/audit/         # change records and the recent-changes feed
+```
+
+Each module has `domain/`, `application/`, `infrastructure/`, and a `module.go`
+whose `Register` wires its adapters, use cases, and routes.
 
 ## Validation tests
 

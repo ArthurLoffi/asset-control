@@ -33,3 +33,6 @@ go.work.sum
 
 # Linux file
 /main
+
+# Build output
+/asset-control
