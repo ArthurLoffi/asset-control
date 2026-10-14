@@ -28,17 +28,15 @@ func NewMachineController(machineUseCase *usecase.MachineUseCase) *MachineContro
 // @Produce      json
 // @Param        machine  body      dto.CreateMachineDto  true  "Dados da máquina"
 // @Success      201      {object}  map[string]interface{}  "Máquina criada com sucesso"
-// @Failure      400      {object}  map[string]string  "Dados inválidos"
-// @Failure      500      {object}  map[string]string  "Erro interno do servidor"
+// @Failure      400      {object}  exception.ErrorResponse  "Dados inválidos"
+// @Failure      500      {object}  exception.ErrorResponse  "Erro interno do servidor"
 // @Router       /machines [post]
 func (ctl *MachineController) CreateMachineController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var machine dto.CreateMachineDto
 
-		if err := c.ShouldBindJSON(&machine); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+		if err := httpx.BindJSON(c, &machine); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -64,26 +62,20 @@ func (ctl *MachineController) CreateMachineController() gin.HandlerFunc {
 // @Param        id       query     uint64          true  "ID da máquina"
 // @Param        machine  body      dto.CreateMachineDto  true  "Dados atualizados da máquina"
 // @Success      200      {object}  map[string]interface{}  "Máquina atualizada com sucesso"
-// @Failure      400      {object}  map[string]string  "ID ou dados inválidos"
-// @Failure      404      {object}  map[string]string  "Máquina não encontrada"
+// @Failure      400      {object}  exception.ErrorResponse  "ID ou dados inválidos"
+// @Failure      404      {object}  exception.ErrorResponse  "Máquina não encontrada"
 // @Router       /machines [put]
 func (ctl *MachineController) UpdateMachineController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'id' is required"})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 
 		var machine dto.CreateMachineDto
-		if err := c.ShouldBindJSON(&machine); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err := httpx.BindJSON(c, &machine); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -106,7 +98,7 @@ func (ctl *MachineController) UpdateMachineController() gin.HandlerFunc {
 // @Tags         machines
 // @Produce      json
 // @Success      200  {object}  map[string]interface{}  "Máquinas encontradas com sucesso"
-// @Failure      500  {object}  map[string]string  "Erro interno do servidor"
+// @Failure      500  {object}  exception.ErrorResponse  "Erro interno do servidor"
 // @Router       /machines [get]
 func (ctl *MachineController) GetAllMachinesController() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -130,20 +122,14 @@ func (ctl *MachineController) GetAllMachinesController() gin.HandlerFunc {
 // @Produce      json
 // @Param        id  query  uint64  true  "ID da máquina"
 // @Success      200  {object}  map[string]interface{}  "Máquina encontrada com sucesso"
-// @Failure      400  {object}  map[string]string  "ID inválido ou não informado"
-// @Failure      404  {object}  map[string]string  "Máquina não encontrada"
+// @Failure      400  {object}  exception.ErrorResponse  "ID inválido ou não informado"
+// @Failure      404  {object}  exception.ErrorResponse  "Máquina não encontrada"
 // @Router       /machines/id [get]
 func (ctl *MachineController) FindByIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'id' is required"})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -167,20 +153,14 @@ func (ctl *MachineController) FindByIDController() gin.HandlerFunc {
 // @Produce      json
 // @Param        employee_id  query  uint64  true  "ID do funcionário"
 // @Success      200  {object}  map[string]interface{}  "Máquinas encontradas com sucesso"
-// @Failure      400  {object}  map[string]string  "ID do funcionário inválido ou não informado"
-// @Failure      404  {object}  map[string]string  "Nenhuma máquina encontrada para o funcionário"
+// @Failure      400  {object}  exception.ErrorResponse  "ID do funcionário inválido ou não informado"
+// @Failure      404  {object}  exception.ErrorResponse  "Nenhuma máquina encontrada para o funcionário"
 // @Router       /machines/employee_id [get]
 func (ctl *MachineController) FindByEmployeeIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("employee_id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'employee_id' is required"})
-			return
-		}
-
-		employeeId, err := httpx.ParseID(idParam)
+		employeeId, err := httpx.QueryID(c, "employee_id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'employee_id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 

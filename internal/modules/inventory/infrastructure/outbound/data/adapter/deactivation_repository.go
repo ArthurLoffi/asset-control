@@ -2,7 +2,7 @@ package adapter
 
 import (
 	"asset-control/internal/core/database"
-	exception "asset-control/internal/core/exception"
+	"asset-control/internal/core/exception"
 	"asset-control/internal/modules/inventory/application/port"
 	"asset-control/internal/modules/inventory/domain/dto"
 	"context"
@@ -27,7 +27,7 @@ func (r *DeactivationRepository) collection(resource string) (*mongo.Collection,
 	case "emails":
 		return r.db.Collection(database.UsableEmailsCollection), nil
 	default:
-		return nil, exception.ErrValidation
+		return nil, exception.NewValidationError("unknown resource " + resource)
 	}
 }
 

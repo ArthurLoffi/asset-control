@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"asset-control/internal/core/exception"
 	"asset-control/internal/core/httpx"
 	"math"
 	"net/http"
@@ -26,8 +27,8 @@ func NewEmailController(emailUseCase *usecase.EmailUseCase) *EmailController {
 // @Tags         emails
 // @Produce      json
 // @Success      200  {object}  dto.EmailListResponseDto
-// @Failure      500  {object}  map[string]string  "Erro interno do servidor"
-// @Failure      504  {object}  map[string]string  "Tempo limite da operação no banco de dados"
+// @Failure      500  {object}  exception.ErrorResponse  "Erro interno do servidor"
+// @Failure      504  {object}  exception.ErrorResponse  "Tempo limite da operação no banco de dados"
 // @Router       /emails [get]
 func (ctl *EmailController) GetAllEmailsController() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -48,16 +49,16 @@ func (ctl *EmailController) GetAllEmailsController() gin.HandlerFunc {
 // @Produce      json
 // @Param        email  body  dto.CreateEmailDto  true  "Dados do email"
 // @Success      201  {object}  dto.EmailResponseDto  "Email criado; status: created"
-// @Failure      400  {object}  map[string]string  "Dados inválidos"
-// @Failure      409  {object}  map[string]string  "Conflito de registro"
-// @Failure      500  {object}  map[string]string  "Erro interno do servidor ou IDs esgotados"
-// @Failure      504  {object}  map[string]string  "Tempo limite da operação no banco de dados"
+// @Failure      400  {object}  exception.ErrorResponse  "Dados inválidos"
+// @Failure      409  {object}  exception.ErrorResponse  "Conflito de registro"
+// @Failure      500  {object}  exception.ErrorResponse  "Erro interno do servidor ou IDs esgotados"
+// @Failure      504  {object}  exception.ErrorResponse  "Tempo limite da operação no banco de dados"
 // @Router       /emails [post]
 func (ctl *EmailController) CreateEmailController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input dto.CreateEmailDto
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err := httpx.BindJSON(c, &input); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 		created, err := ctl.emailUseCase.CreateEmail(c.Request.Context(), input)
@@ -78,27 +79,26 @@ func (ctl *EmailController) CreateEmailController() gin.HandlerFunc {
 // @Param        id     query  int  true  "ID do email (inteiro positivo de 32 bits)" Format(int32) minimum(1) maximum(2147483647)
 // @Param        email  body  dto.CreateEmailDto  true  "Dados atualizados do email"
 // @Success      200  {object}  dto.EmailResponseDto  "Email atualizado; status: email updated successfully"
-// @Failure      400  {object}  map[string]string  "ID ou dados inválidos"
-// @Failure      404  {object}  map[string]string  "Email não encontrado"
-// @Failure      409  {object}  map[string]string  "Conflito de registro"
-// @Failure      500  {object}  map[string]string  "Erro interno do servidor"
-// @Failure      504  {object}  map[string]string  "Tempo limite da operação no banco de dados"
+// @Failure      400  {object}  exception.ErrorResponse  "ID ou dados inválidos"
+// @Failure      404  {object}  exception.ErrorResponse  "Email não encontrado"
+// @Failure      409  {object}  exception.ErrorResponse  "Conflito de registro"
+// @Failure      500  {object}  exception.ErrorResponse  "Erro interno do servidor"
+// @Failure      504  {object}  exception.ErrorResponse  "Tempo limite da operação no banco de dados"
 // @Router       /emails [put]
 func (ctl *EmailController) UpdateEmailController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'id' is required"})
+		id, err := httpx.QueryID(c, "id")
+		if err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
-		id, err := httpx.ParseID(idParam)
-		if err != nil || id > math.MaxInt32 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+		if id > math.MaxInt32 {
+			httpx.WriteError(c, exception.NewHTTPError(http.StatusBadRequest, "invalid 'id' value"))
 			return
 		}
 		var input dto.CreateEmailDto
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err := httpx.BindJSON(c, &input); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 		updated, err := ctl.emailUseCase.UpdateEmail(c.Request.Context(), int32(id), input)
@@ -117,21 +117,20 @@ func (ctl *EmailController) UpdateEmailController() gin.HandlerFunc {
 // @Produce      json
 // @Param        id   query     int  true  "ID do email (inteiro positivo de 32 bits)" Format(int32) minimum(1) maximum(2147483647)
 // @Success      200  {object}  dto.EmailResponseDto
-// @Failure      400  {object}  map[string]string  "ID inválido ou não informado"
-// @Failure      404  {object}  map[string]string  "Email não encontrado"
-// @Failure      500  {object}  map[string]string  "Erro interno do servidor"
-// @Failure      504  {object}  map[string]string  "Tempo limite da operação no banco de dados"
+// @Failure      400  {object}  exception.ErrorResponse  "ID inválido ou não informado"
+// @Failure      404  {object}  exception.ErrorResponse  "Email não encontrado"
+// @Failure      500  {object}  exception.ErrorResponse  "Erro interno do servidor"
+// @Failure      504  {object}  exception.ErrorResponse  "Tempo limite da operação no banco de dados"
 // @Router       /emails/id [get]
 func (ctl *EmailController) FindByIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'id' is required"})
+		id, err := httpx.QueryID(c, "id")
+		if err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
-		id, err := httpx.ParseID(idParam)
-		if err != nil || id > math.MaxInt32 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+		if id > math.MaxInt32 {
+			httpx.WriteError(c, exception.NewHTTPError(http.StatusBadRequest, "invalid 'id' value"))
 			return
 		}
 		email, err := ctl.emailUseCase.FindByID(c.Request.Context(), int32(id))
@@ -150,16 +149,16 @@ func (ctl *EmailController) FindByIDController() gin.HandlerFunc {
 // @Produce      json
 // @Param        user  query     string  true  "Usuário do email (não pode ser vazio)"
 // @Success      200   {object}  dto.EmailResponseDto
-// @Failure      400   {object}  map[string]string  "Usuário não informado ou vazio"
-// @Failure      404   {object}  map[string]string  "Email não encontrado"
-// @Failure      500   {object}  map[string]string  "Erro interno do servidor"
-// @Failure      504   {object}  map[string]string  "Tempo limite da operação no banco de dados"
+// @Failure      400   {object}  exception.ErrorResponse  "Usuário não informado ou vazio"
+// @Failure      404   {object}  exception.ErrorResponse  "Email não encontrado"
+// @Failure      500   {object}  exception.ErrorResponse  "Erro interno do servidor"
+// @Failure      504   {object}  exception.ErrorResponse  "Tempo limite da operação no banco de dados"
 // @Router       /emails/user [get]
 func (ctl *EmailController) FindByUserController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := strings.TrimSpace(c.Query("user"))
 		if user == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user is required"})
+			httpx.WriteError(c, exception.NewValidationError("user is required"))
 			return
 		}
 		email, err := ctl.emailUseCase.FindByUser(c.Request.Context(), user)

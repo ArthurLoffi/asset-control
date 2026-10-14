@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"asset-control/internal/core/exception"
 	"asset-control/internal/core/httpx"
 	"net/http"
 	"strings"
@@ -29,17 +30,15 @@ func NewEmployeeController(employeeUseCase *usecase.EmployeeUseCase) *EmployeeCo
 // @Produce      json
 // @Param        employee  body      dto.CreateEmployeeDto  true  "Dados do funcionário"
 // @Success      201       {object}  map[string]interface{}  "Funcionário criado com sucesso"
-// @Failure      400       {object}  map[string]string  "Dados inválidos"
-// @Failure      500       {object}  map[string]string  "Erro interno do servidor"
+// @Failure      400       {object}  exception.ErrorResponse  "Dados inválidos"
+// @Failure      500       {object}  exception.ErrorResponse  "Erro interno do servidor"
 // @Router       /employees [post]
 func (ctl *EmployeeController) CreateEmployeeController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var employee dto.CreateEmployeeDto
 
-		if err := c.ShouldBindJSON(&employee); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+		if err := httpx.BindJSON(c, &employee); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -65,26 +64,20 @@ func (ctl *EmployeeController) CreateEmployeeController() gin.HandlerFunc {
 // @Param        id        query     uint64           true  "ID do funcionário"
 // @Param        employee  body      dto.CreateEmployeeDto  true  "Dados atualizados do funcionário"
 // @Success      200       {object}  map[string]interface{}  "Funcionário atualizado com sucesso"
-// @Failure      400       {object}  map[string]string  "ID inválido ou dados inválidos"
-// @Failure      404       {object}  map[string]string  "Funcionário não encontrado"
+// @Failure      400       {object}  exception.ErrorResponse  "ID inválido ou dados inválidos"
+// @Failure      404       {object}  exception.ErrorResponse  "Funcionário não encontrado"
 // @Router       /employees [put]
 func (ctl *EmployeeController) UpdateEmployeeController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'id' is required"})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 
 		var employee dto.CreateEmployeeDto
-		if err := c.ShouldBindJSON(&employee); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err := httpx.BindJSON(c, &employee); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -107,7 +100,7 @@ func (ctl *EmployeeController) UpdateEmployeeController() gin.HandlerFunc {
 // @Tags         employees
 // @Produce      json
 // @Success      200  {object}  map[string]interface{}  "Funcionários encontrados com sucesso"
-// @Failure      500  {object}  map[string]string  "Erro interno do servidor"
+// @Failure      500  {object}  exception.ErrorResponse  "Erro interno do servidor"
 // @Router       /employees [get]
 func (ctl *EmployeeController) GetAllEmployeesController() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -131,17 +124,15 @@ func (ctl *EmployeeController) GetAllEmployeesController() gin.HandlerFunc {
 // @Produce      json
 // @Param        name  query  string  true  "Nome do funcionário"
 // @Success      200  {object}  map[string]interface{}  "Funcionário encontrado com sucesso"
-// @Failure      400  {object}  map[string]string  "Nome não informado"
-// @Failure      404  {object}  map[string]string  "Funcionário não encontrado"
+// @Failure      400  {object}  exception.ErrorResponse  "Nome não informado"
+// @Failure      404  {object}  exception.ErrorResponse  "Funcionário não encontrado"
 // @Router       /employees/name [get]
 func (ctl *EmployeeController) FindByNameController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := strings.TrimSpace(c.Query("name"))
 
 		if name == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "name is required",
-			})
+			httpx.WriteError(c, exception.NewValidationError("name is required"))
 			return
 		}
 
@@ -166,20 +157,14 @@ func (ctl *EmployeeController) FindByNameController() gin.HandlerFunc {
 // @Produce      json
 // @Param        id  query  uint64  true  "ID do funcionário"
 // @Success      200  {object}  map[string]interface{}  "Funcionário encontrado com sucesso"
-// @Failure      400  {object}  map[string]string  "ID inválido ou não informado"
-// @Failure      404  {object}  map[string]string  "Funcionário não encontrado"
+// @Failure      400  {object}  exception.ErrorResponse  "ID inválido ou não informado"
+// @Failure      404  {object}  exception.ErrorResponse  "Funcionário não encontrado"
 // @Router       /employees/id [get]
 func (ctl *EmployeeController) FindByIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'id' is required"})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 

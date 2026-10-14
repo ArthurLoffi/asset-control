@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	exception "asset-control/internal/core/exception"
+	"asset-control/internal/core/exception"
 	"asset-control/internal/modules/inventory/application/usecase"
 	"asset-control/internal/modules/inventory/domain/dto"
 

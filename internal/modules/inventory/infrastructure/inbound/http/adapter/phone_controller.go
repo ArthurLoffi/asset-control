@@ -28,17 +28,15 @@ func NewPhoneController(phoneUseCase *usecase.PhoneUseCase) *PhoneController {
 // @Produce json
 // @Param phone body dto.CreatePhoneDto true "Dados do telefone"
 // @Success 201 {object} map[string]interface{} "Telefone criado com sucesso"
-// @Failure 400 {object} map[string]string "Dados inválidos"
-// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Failure 400 {object} exception.ErrorResponse "Dados inválidos"
+// @Failure 500 {object} exception.ErrorResponse "Erro interno do servidor"
 // @Router /phones [post]
 func (ctl *PhoneController) CreatePhoneController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var phone dto.CreatePhoneDto
 
-		if err := c.ShouldBindJSON(&phone); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+		if err := httpx.BindJSON(c, &phone); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -64,26 +62,20 @@ func (ctl *PhoneController) CreatePhoneController() gin.HandlerFunc {
 // @Param id query uint64 true "ID do telefone"
 // @Param phone body dto.CreatePhoneDto true "Dados atualizados do telefone"
 // @Success 200 {object} map[string]interface{} "Telefone atualizado com sucesso"
-// @Failure 400 {object} map[string]string "ID ou dados inválidos"
-// @Failure 404 {object} map[string]string "Telefone não encontrado"
+// @Failure 400 {object} exception.ErrorResponse "ID ou dados inválidos"
+// @Failure 404 {object} exception.ErrorResponse "Telefone não encontrado"
 // @Router /phones [put]
 func (ctl *PhoneController) UpdatePhoneController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'id' is required"})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 
 		var phone dto.CreatePhoneDto
-		if err := c.ShouldBindJSON(&phone); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err := httpx.BindJSON(c, &phone); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -106,7 +98,7 @@ func (ctl *PhoneController) UpdatePhoneController() gin.HandlerFunc {
 // @Tags phones
 // @Produce json
 // @Success 200 {object} map[string]interface{} "Telefones encontrados com sucesso"
-// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Failure 500 {object} exception.ErrorResponse "Erro interno do servidor"
 // @Router /phones [get]
 func (ctl *PhoneController) GetAllPhonesController() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -130,20 +122,14 @@ func (ctl *PhoneController) GetAllPhonesController() gin.HandlerFunc {
 // @Produce json
 // @Param id query uint64 true "ID do telefone"
 // @Success 200 {object} map[string]interface{} "Telefone encontrado com sucesso"
-// @Failure 400 {object} map[string]string "ID inválido ou não informado"
-// @Failure 404 {object} map[string]string "Telefone não encontrado"
+// @Failure 400 {object} exception.ErrorResponse "ID inválido ou não informado"
+// @Failure 404 {object} exception.ErrorResponse "Telefone não encontrado"
 // @Router /phones/id [get]
 func (ctl *PhoneController) FindByIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'id' is required"})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -167,20 +153,14 @@ func (ctl *PhoneController) FindByIDController() gin.HandlerFunc {
 // @Produce json
 // @Param employee_id query uint64 true "ID do funcionário"
 // @Success 200 {object} map[string]interface{} "Telefones encontrados com sucesso"
-// @Failure 400 {object} map[string]string "ID do funcionário inválido ou não informado"
-// @Failure 404 {object} map[string]string "Nenhum telefone encontrado para o funcionário"
+// @Failure 400 {object} exception.ErrorResponse "ID do funcionário inválido ou não informado"
+// @Failure 404 {object} exception.ErrorResponse "Nenhum telefone encontrado para o funcionário"
 // @Router /phones/employee_id [get]
 func (ctl *PhoneController) FindByEmployeeIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("employee_id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query param 'employee_id' is required"})
-			return
-		}
-
-		employeeId, err := httpx.ParseID(idParam)
+		employeeId, err := httpx.QueryID(c, "employee_id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'employee_id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 

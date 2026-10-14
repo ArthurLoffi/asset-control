@@ -58,7 +58,7 @@ func TestRateLimit(t *testing.T) {
 		)
 	}
 
-	expectedBody := `{"error":"Too many requests. Try again later."}`
+	expectedBody := `{"message":"Too many requests. Try again later.","code":"CORE_002","logs":{}}`
 
 	if rec.Body.String() != expectedBody {
 		t.Errorf(

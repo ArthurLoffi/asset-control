@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Every error response uses `{message, code, logs}` (`CORE_001`–`CORE_005`,
+  `AUTH_xxx`) instead of `{error}`; see `docs/errors.md`. Validation messages
+  cite public field names and are listed in `logs.validationErrors`.
+- JSON bodies are decoded once and validated once, after normalization, in the
+  use case.
+- Unknown routes return 404 `CORE_002` instead of Gin's plain-text page.
+
 - Adopt the modular hexagonal layout: `cmd/api`, `internal/app`, `internal/core`,
   and `internal/modules/{inventory,organization,audit}`, each module with its own
   `domain`, `application`, `infrastructure`, and `module.go`.

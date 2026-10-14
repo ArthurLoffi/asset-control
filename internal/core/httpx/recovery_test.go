@@ -28,6 +28,9 @@ func TestRecoveryDoesNotLogCredentials(t *testing.T) {
 	if response.Code != 500 || strings.Contains(output.String(), "private") || strings.Contains(response.Body.String(), "private") {
 		t.Fatalf("unsafe recovery: %d %s", response.Code, output.String())
 	}
+	if response.Body.String() != `{"message":"Unexpected error","code":"CORE_003","logs":{}}` {
+		t.Fatalf("unexpected body %s", response.Body.String())
+	}
 	if !strings.Contains(output.String(), response.Header().Get("X-Request-ID")) {
 		t.Fatal("recovery log missing request ID")
 	}

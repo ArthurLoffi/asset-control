@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	exception "asset-control/internal/core/exception"
+	"asset-control/internal/core/exception"
 )
 
 func TestPhoneIdentificationRequirements(t *testing.T) {
@@ -31,7 +31,7 @@ func TestPhoneIdentificationRequirements(t *testing.T) {
 					if optional && err != nil {
 						t.Fatal(err)
 					}
-					if !optional && !errors.Is(err, exception.ErrValidation) {
+					if !optional && !errors.As(err, new(*exception.ValidationError)) {
 						t.Fatalf("expected validation error, got %v", err)
 					}
 				})
@@ -59,7 +59,7 @@ func TestPhoneOptionalIdentificationPreservesLimitsAndValues(t *testing.T) {
 			case "serial_number":
 				oversized.SerialNumber = strings.Repeat("a", 101)
 			}
-			if err := oversized.Validate(); !errors.Is(err, exception.ErrValidation) {
+			if err := oversized.Validate(); !errors.As(err, new(*exception.ValidationError)) {
 				t.Fatalf("%s: expected length validation error, got %v", field, err)
 			}
 		}

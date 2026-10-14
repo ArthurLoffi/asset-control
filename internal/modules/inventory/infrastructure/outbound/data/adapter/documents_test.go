@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	exception "asset-control/internal/core/exception"
+	"asset-control/internal/core/exception"
 	"asset-control/internal/modules/inventory/infrastructure/outbound/data/schema"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )

@@ -38,6 +38,7 @@ func New(db *mongo.Database, authModule *auth.Module, responseCache middleware.R
 	inventory.Register(api, db, recorder)
 	organization.Register(api, db)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.NoRoute(httpx.NotFound)
 	return router, nil
 }
 

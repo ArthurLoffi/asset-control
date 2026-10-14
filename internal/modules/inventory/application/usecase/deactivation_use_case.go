@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	exception "asset-control/internal/core/exception"
+	"asset-control/internal/core/exception"
 	"asset-control/internal/modules/inventory/application/port"
 	"asset-control/internal/modules/inventory/domain/dto"
 	"context"
@@ -27,14 +27,14 @@ func validResourceID(resource string, id uint64) bool {
 
 func (uc *DeactivationUseCase) Deactivate(ctx context.Context, resource string, id uint64) (dto.DeactivationDto, error) {
 	if id == 0 || !validResourceID(resource, id) {
-		return dto.DeactivationDto{}, exception.ErrValidation
+		return dto.DeactivationDto{}, exception.NewValidationError("id must be a positive record ID")
 	}
 	return uc.repository.Deactivate(ctx, resource, id)
 }
 
 func (uc *DeactivationUseCase) ListInactive(ctx context.Context, resource string, after uint64, limit int) (dto.InactivePageDto, error) {
 	if !validResourceID(resource, after) || limit < 1 || limit > 100 {
-		return dto.InactivePageDto{}, exception.ErrValidation
+		return dto.InactivePageDto{}, exception.NewValidationError("after must be a record ID and limit between 1 and 100")
 	}
 	return uc.repository.ListInactive(ctx, resource, after, limit)
 }

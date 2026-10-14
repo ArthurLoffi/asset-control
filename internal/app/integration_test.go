@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"asset-control/internal/core/database"
-	exception "asset-control/internal/core/exception"
+	"asset-control/internal/core/exception"
 	"asset-control/internal/modules/inventory/application/usecase"
 	"asset-control/internal/modules/inventory/domain/dto"
 	repository "asset-control/internal/modules/inventory/infrastructure/outbound/data/adapter"

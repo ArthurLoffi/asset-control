@@ -104,7 +104,8 @@ unspecified equipment, and retain the 100-character maximum in every case.
 Existing identification values are preserved when supplied; no placeholders
 are generated. Restart the API after updating it to apply this validation rule.
 Database failures return 500, missing records 404, conflicts 409, and operation
-timeouts 504. Internal database details are not exposed in responses.
+timeouts 504, all in the `{message, code, logs}` envelope described in
+[docs/errors.md](docs/errors.md). Internal database details are not exposed in responses.
 
 ## Layout
 
@@ -165,7 +166,7 @@ creates a unique `users.name` index; existing duplicates must be resolved first.
 - `GET /api/auth/session`: returns the current session or 401.
 - `POST /api/auth/logout`: clears the cookie, including after expiry.
 - All inventory routes and Swagger require the session cookie. Missing/invalid
-  tokens return 401; expired tokens include `code: "session_expired"`.
+  tokens return 401; expired tokens return `code: "AUTH_004"`.
 - Every write requires `X-CSRF-Protection: 1`. Requests from browsers must use
   an origin in `AUTH_ALLOWED_ORIGINS`; CORS credentials are enabled only there.
 

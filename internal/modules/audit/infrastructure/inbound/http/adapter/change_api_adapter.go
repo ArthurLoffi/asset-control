@@ -19,8 +19,8 @@ func NewRecentChangeController(uc *usecase.RecentChangeUseCase) *RecentChangeCon
 // @Tags changes
 // @Produce json
 // @Success 200 {object} dto.RecentChangesResponseDto
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 401 {object} exception.ErrorResponse
+// @Failure 500 {object} exception.ErrorResponse
 // @Router /changes/recent [get]
 func (ctl *RecentChangeController) ListRecent(c *gin.Context) {
 	changes, err := ctl.usecase.ListRecent(c.Request.Context())
