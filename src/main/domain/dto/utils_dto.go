@@ -1,7 +1,7 @@
 package dto
 
 type BranchDto struct {
-	Id uint64 `json:"id"`
+	Id   uint64 `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -10,7 +10,7 @@ func (BranchDto) TableName() string {
 }
 
 type DepartmentDto struct {
-	Id uint64 `json:"id"`
+	Id   uint64 `json:"id"`
 	Name string `json:"name"`
 }
 

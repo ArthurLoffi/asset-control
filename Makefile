@@ -1,7 +1,7 @@
 .PHONY: swagger test test-integration vet build
 
 swagger:
-	go run github.com/swaggo/swag/cmd/swag@v1.16.6 init --dir ./src/main --output ./src/main/adapter/inbound/http/swagger
+	go run github.com/swaggo/swag/cmd/swag@v1.16.6 init --dir ./src/main --output ./src/main/infrastructure/inbound/http/swagger
 
 test:
 	go test -race ./...

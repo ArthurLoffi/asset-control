@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"asset-control/src/main/adapter/outbound/data/database"
+	"asset-control/src/main/infrastructure/outbound/data/database"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

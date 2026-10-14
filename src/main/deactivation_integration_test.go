@@ -3,9 +3,9 @@
 package main
 
 import (
-	"asset-control/src/main/adapter/outbound/data/database"
-	"asset-control/src/main/adapter/outbound/data/repository"
 	"asset-control/src/main/domain/dto"
+	"asset-control/src/main/infrastructure/outbound/data/database"
+	"asset-control/src/main/infrastructure/outbound/data/repository"
 	"context"
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/v2/bson"
