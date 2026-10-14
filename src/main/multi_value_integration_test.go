@@ -3,7 +3,7 @@
 package main
 
 import (
-	"asset-control/src/main/adapter/outbound/data/database"
+	"asset-control/src/main/infrastructure/outbound/data/database"
 	"context"
 	"net/http"
 	"testing"
