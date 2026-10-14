@@ -1,7 +1,7 @@
 .PHONY: swagger test test-integration vet build
 
 swagger:
-	go run github.com/swaggo/swag/cmd/swag@v1.16.6 init --dir ./src/main --output ./src/main/infrastructure/inbound/http/swagger
+	go run github.com/swaggo/swag/cmd/swag@v1.16.6 init --generalInfo main.go --dir ./cmd/api,./internal --output ./internal/app/swagger --outputTypes go,json,yaml
 
 test:
 	go test -race ./...
@@ -13,4 +13,4 @@ vet:
 	go vet ./...
 
 build:
-	go build ./src/main/main.go
+	go build -o asset-control ./cmd/api
