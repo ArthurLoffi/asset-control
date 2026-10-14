@@ -37,12 +37,12 @@ func TestWriteErrorEnvelope(t *testing.T) {
 	}
 }
 
-func TestNotFoundAndQueryID(t *testing.T) {
+func TestNotFoundAndPathID(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.NoRoute(NotFound)
-	router.GET("/item", func(c *gin.Context) {
-		id, err := QueryID(c, "id")
+	router.GET("/item/:id", func(c *gin.Context) {
+		id, err := PathID(c)
 		if err != nil {
 			WriteError(c, err)
 			return
@@ -50,11 +50,11 @@ func TestNotFoundAndQueryID(t *testing.T) {
 		c.JSON(http.StatusOK, id)
 	})
 	for target, want := range map[string]string{
-		"/missing":                     `{"message":"Cannot GET /missing","code":"CORE_002","logs":{}}`,
-		"/item":                        `{"message":"query param 'id' is required","code":"CORE_002","logs":{}}`,
-		"/item?id=0":                   `{"message":"invalid 'id' value","code":"CORE_002","logs":{}}`,
-		"/item?id=9223372036854775808": `{"message":"invalid 'id' value","code":"CORE_002","logs":{}}`,
-		"/item?id=42":                  `42`,
+		"/missing":                  `{"message":"Cannot GET /missing","code":"CORE_002","logs":{}}`,
+		"/item/abc":                 `{"message":"invalid id","code":"CORE_002","logs":{}}`,
+		"/item/0":                   `{"message":"invalid id","code":"CORE_002","logs":{}}`,
+		"/item/9223372036854775808": `{"message":"invalid id","code":"CORE_002","logs":{}}`,
+		"/item/42":                  `42`,
 	} {
 		response := httptest.NewRecorder()
 		router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, target, nil))

@@ -17,10 +17,12 @@ import (
 	"time"
 
 	"asset-control/internal/core/database"
+	coredto "asset-control/internal/core/dto"
 	"asset-control/internal/core/exception"
-	"asset-control/internal/modules/inventory/application/usecase"
+	"asset-control/internal/core/resource"
 	"asset-control/internal/modules/inventory/domain/dto"
-	repository "asset-control/internal/modules/inventory/infrastructure/outbound/data/adapter"
+	inventorydata "asset-control/internal/modules/inventory/infrastructure/outbound/data/adapter"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -52,6 +54,14 @@ func testDatabase(t *testing.T) *mongo.Database {
 	return db
 }
 
+func ensureSchema(t *testing.T, db *mongo.Database) {
+	t.Helper()
+	if err := EnsureSchema(context.Background(), db); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// callAPI returns the raw response body after checking the status.
 func callAPI(t *testing.T, router http.Handler, method, target string, input any, status int) json.RawMessage {
 	t.Helper()
 	var body []byte
@@ -69,13 +79,7 @@ func callAPI(t *testing.T, router http.Handler, method, target string, input any
 	if recorder.Code != status {
 		t.Fatalf("%s %s: got %d, want %d: %s", method, target, recorder.Code, status, recorder.Body.String())
 	}
-	var response struct {
-		Data json.RawMessage `json:"data"`
-	}
-	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
-		t.Fatal(err)
-	}
-	return response.Data
+	return recorder.Body.Bytes()
 }
 
 func object(t *testing.T, data json.RawMessage) map[string]any {
@@ -83,6 +87,29 @@ func object(t *testing.T, data json.RawMessage) map[string]any {
 	var result map[string]any
 	if err := json.Unmarshal(data, &result); err != nil {
 		t.Fatal(err)
+	}
+	return result
+}
+
+func page(t *testing.T, data json.RawMessage) ([]map[string]any, coredto.PagingDTO) {
+	t.Helper()
+	var result struct {
+		Content []map[string]any  `json:"content"`
+		Paging  coredto.PagingDTO `json:"paging"`
+	}
+	if err := json.Unmarshal(data, &result); err != nil {
+		t.Fatal(err)
+	}
+	if result.Content == nil {
+		t.Fatalf("content must never be null: %s", data)
+	}
+	return result.Content, result.Paging
+}
+
+func ids(records []map[string]any) []float64 {
+	result := make([]float64, 0, len(records))
+	for _, record := range records {
+		result = append(result, record["id"].(float64))
 	}
 	return result
 }
@@ -117,15 +144,13 @@ func TestMongoDBAPIRoundTrips(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if err := database.EnsureSchema(ctx, db); err != nil {
-		t.Fatal(err)
-	}
+	ensureSchema(t, db)
 	gin.SetMode(gin.TestMode)
 	router := testRouter(t, db)
 	for _, tc := range cases {
 		t.Run(tc.collection, func(t *testing.T) {
 			path := "/api/" + tc.collection
-			imported := object(t, callAPI(t, router, "GET", path+"/id?id=42", nil, 200))
+			imported := object(t, callAPI(t, router, "GET", path+"/42", nil, 200))
 			if imported["id"] != float64(42) || imported["created_at"] != importedAt.Format(time.RFC3339) {
 				t.Fatalf("imported document not preserved: %v", imported)
 			}
@@ -137,19 +162,15 @@ func TestMongoDBAPIRoundTrips(t *testing.T) {
 				t.Fatalf("SQL default missing: %v", created)
 			}
 			if _, exposed := created["_id"]; exposed {
-				t.Fatal("MongoDB _id exposed through legacy API")
+				t.Fatal("MongoDB _id exposed through the API")
 			}
-			saved := object(t, callAPI(t, router, "GET", path+"/id?id=43", nil, 200))
+			saved := object(t, callAPI(t, router, "GET", path+"/43", nil, 200))
 			if saved[tc.changeField] != tc.input[tc.changeField] {
 				t.Fatalf("wrong persisted value: %v", saved)
 			}
-			list := callAPI(t, router, "GET", path, nil, 200)
-			var records []map[string]any
-			if err := json.Unmarshal(list, &records); err != nil || len(records) != 2 {
-				t.Fatalf("list=%s err=%v", list, err)
-			}
-			if records[0]["id"] != float64(42) {
-				t.Fatal("list order not deterministic")
+			records, paging := page(t, callAPI(t, router, "GET", path, nil, 200))
+			if len(records) != 2 || records[0]["id"] != float64(42) || paging.TotalElements != 2 || paging.Size != 20 {
+				t.Fatalf("list=%v paging=%+v", records, paging)
 			}
 			_, err := db.Collection(tc.collection).UpdateOne(ctx, bson.M{"id": 43}, bson.M{"$set": bson.M{"migration_note": "keep me"}})
 			if err != nil {
@@ -162,7 +183,7 @@ func TestMongoDBAPIRoundTrips(t *testing.T) {
 				tc.input[tc.optionalFlag] = false
 				tc.input["employee_id"] = nil
 			}
-			updated := object(t, callAPI(t, router, "PUT", path+"?id=43", tc.input, 200))
+			updated := object(t, callAPI(t, router, "PUT", path+"/43", tc.input, 200))
 			if updated["id"] != float64(43) || updated["created_at"] != created["created_at"] || updated[tc.changeField] != "Updated" {
 				t.Fatalf("incorrect update: %v", updated)
 			}
@@ -177,45 +198,87 @@ func TestMongoDBAPIRoundTrips(t *testing.T) {
 				if value, exists := raw["employee_id"]; !exists || value != nil || raw[tc.optionalFlag] != false {
 					t.Fatalf("null/false update lost: %v", raw)
 				}
-				related := callAPI(t, router, "GET", path+"/employee_id?employee_id=42", nil, 200)
-				if err := json.Unmarshal(related, &records); err != nil || len(records) != 1 || records[0]["id"] != float64(42) {
-					t.Fatalf("relationship filter=%s err=%v", related, err)
+				related, _ := page(t, callAPI(t, router, "GET", path+"?employee_id=42", nil, 200))
+				if len(related) != 1 || related[0]["id"] != float64(42) {
+					t.Fatalf("relationship filter=%v", related)
 				}
-				empty := callAPI(t, router, "GET", path+"/employee_id?employee_id=999", nil, 200)
-				if string(empty) != "[]" {
-					t.Fatalf("empty collection must be [], got %s", empty)
+				if empty, _ := page(t, callAPI(t, router, "GET", path+"?employee_id=999", nil, 200)); len(empty) != 0 {
+					t.Fatalf("no match must be []: %v", empty)
 				}
 			}
-			callAPI(t, router, "GET", path+"/id?id=999", nil, 404)
-			callAPI(t, router, "PUT", path+"?id=999", tc.input, 404)
+			notFound := object(t, callAPI(t, router, "GET", path+"/999", nil, 404))
+			if notFound["code"] != strings.ToUpper(strings.TrimSuffix(tc.collection, "s"))+"_001" {
+				t.Fatalf("entity not-found code: %v", notFound)
+			}
+			callAPI(t, router, "PUT", path+"/999", tc.input, 404)
 			callAPI(t, router, "POST", path, map[string]any{}, 400)
-			callAPI(t, router, "PUT", path+"?id=43", map[string]any{}, 400)
-			callAPI(t, router, "GET", path+"/id?id=0", nil, 400)
+			callAPI(t, router, "PUT", path+"/43", map[string]any{}, 400)
+			callAPI(t, router, "GET", path+"/0", nil, 400)
 			count, err := db.Collection(tc.collection).CountDocuments(ctx, bson.M{})
 			if err != nil || count != 2 {
 				t.Fatalf("invalid request or missing update wrote a document: %d, %v", count, err)
 			}
 		})
 	}
-	for path, want := range map[string]string{"/api/utils/branch?id=1": "branches name", "/api/utils/department?id=2": "departments name"} {
-		data := object(t, callAPI(t, router, "GET", path, nil, 200))
-		if data["name"] != want {
+	for path, want := range map[string]string{"/api/branches/1": "branches name", "/api/departments/2": "departments name"} {
+		if data := object(t, callAPI(t, router, "GET", path, nil, 200)); data["name"] != want || data["id"] == nil {
 			t.Fatalf("lookup=%v", data)
 		}
 	}
-	callAPI(t, router, "GET", "/api/utils/branch?id=999", nil, 404)
-	callAPI(t, router, "GET", "/api/utils/department?id=999", nil, 404)
-	found := object(t, callAPI(t, router, "GET", "/api/employees/name?name="+url.QueryEscape("ana [ops]"), nil, 200))
-	if found["id"] != float64(42) {
+	if branches, _ := page(t, callAPI(t, router, "GET", "/api/branches?name=BRANCH", nil, 200)); len(branches) != 1 {
+		t.Fatalf("branch name filter: %v", branches)
+	}
+	callAPI(t, router, "GET", "/api/branches/999", nil, 404)
+	callAPI(t, router, "GET", "/api/departments/999", nil, 404)
+	found, _ := page(t, callAPI(t, router, "GET", "/api/employees?name="+url.QueryEscape("ana [ops]"), nil, 200))
+	if len(found) != 1 || found[0]["id"] != float64(42) {
 		t.Fatalf("literal case-insensitive name search: %v", found)
 	}
-	callAPI(t, router, "GET", "/api/employees/name?name="+url.QueryEscape(".*"), nil, 404)
-	callAPI(t, router, "GET", "/api/employees/name", nil, 400)
+	if none, _ := page(t, callAPI(t, router, "GET", "/api/employees?name="+url.QueryEscape(".*"), nil, 200)); len(none) != 0 {
+		t.Fatalf("regex characters must be literal: %v", none)
+	}
 	canceled, cancel := context.WithCancel(ctx)
 	cancel()
-	_, err := repository.NewEmployeeRepository(db).GetAllEmployees(canceled)
+	_, err := inventorydata.NewEmployeeDataAdapter(db).FindAll(canceled, dto.EmployeeRequestDTO{})
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("cancellation lost: %v", err)
+	}
+}
+
+func TestListingContract(t *testing.T) {
+	db := testDatabase(t)
+	ctx := context.Background()
+	names := []string{"Carla", "ana", "Bruno", "Ana Maria", "Diego"}
+	for index, name := range names {
+		if _, err := db.Collection("employees").InsertOne(ctx, bson.M{"id": index + 1, "name": name, "branch_id": index%2 + 1}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	router := testRouter(t, db)
+	for _, tc := range []struct {
+		query  string
+		ids    []float64
+		paging coredto.PagingDTO
+	}{
+		{"", []float64{1, 2, 3, 4, 5}, coredto.PagingDTO{TotalElements: 5, Size: 20, TotalPages: 1, HasContent: true}},
+		{"?page_size=2", []float64{1, 2}, coredto.PagingDTO{TotalElements: 5, Size: 2, TotalPages: 3, HasContent: true, HasNext: true}},
+		{"?page_size=2&page=2", []float64{5}, coredto.PagingDTO{TotalElements: 5, Size: 2, Page: 2, TotalPages: 3, HasContent: true, HasPrevious: true}},
+		{"?page_size=2&page=9", []float64{}, coredto.PagingDTO{TotalElements: 5, Size: 2, Page: 9, TotalPages: 3, HasPrevious: true}},
+		{"?direction=desc", []float64{5, 4, 3, 2, 1}, coredto.PagingDTO{TotalElements: 5, Size: 20, TotalPages: 1, HasContent: true}},
+		{"?sort_by=name", []float64{2, 4, 3, 1, 5}, coredto.PagingDTO{TotalElements: 5, Size: 20, TotalPages: 1, HasContent: true}},
+		{"?name=ANA", []float64{2, 4}, coredto.PagingDTO{TotalElements: 2, Size: 20, TotalPages: 1, HasContent: true}},
+		{"?branch_id=1&direction=DESC", []float64{5, 3, 1}, coredto.PagingDTO{TotalElements: 3, Size: 20, TotalPages: 1, HasContent: true}},
+	} {
+		records, paging := page(t, callAPI(t, router, "GET", "/api/employees"+tc.query, nil, 200))
+		if fmt.Sprint(ids(records)) != fmt.Sprint(tc.ids) || paging != tc.paging {
+			t.Errorf("%s: ids=%v paging=%+v", tc.query, ids(records), paging)
+		}
+	}
+	for _, query := range []string{"page=-1", "page_size=101", "direction=up", "sort_by=password", "page=x", "branch_id=x"} {
+		body := object(t, callAPI(t, router, "GET", "/api/employees?"+query, nil, 400))
+		if body["code"] != exception.ValidationCode {
+			t.Errorf("%s: %v", query, body)
+		}
 	}
 }
 
@@ -225,44 +288,38 @@ func TestMongoDBConcurrentIDsAndRestart(t *testing.T) {
 	if _, err := db.Collection("employees").InsertOne(ctx, bson.M{"id": int64(100), "name": "Imported"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := database.EnsureSchema(ctx, db); err != nil {
-		t.Fatal(err)
-	}
-	uc := usecase.NewEmployeeUseCase(repository.NewEmployeeRepository(db))
+	ensureSchema(t, db)
+	create := resource.NewUseCases("employee", inventorydata.NewEmployeeDataAdapter(db), nil).Create
 	const workers = 32
-	ids := make(chan uint64, workers)
+	createdIDs := make(chan uint64, workers)
 	failures := make(chan error, workers+4)
 	var wg sync.WaitGroup
-	for i := 0; i < workers; i++ {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			created, err := uc.CreateEmployee(ctx, dto.CreateEmployeeDto{Name: fmt.Sprintf("Employee %d", i), Email: fmt.Sprintf("employee%d@example.com", i), BranchID: 1, DepartmentID: 2})
+	for i := range workers {
+		wg.Go(func() {
+			created, err := create.Execute(ctx, dto.EmployeeInputDTO{Name: fmt.Sprintf("Employee %d", i), Email: fmt.Sprintf("employee%d@example.com", i), BranchID: 1, DepartmentID: 2})
 			if err != nil {
 				failures <- err
 				return
 			}
-			ids <- created.ID
-		}(i)
+			createdIDs <- created.ID
+		})
 	}
 	// Simulate additional application instances starting while writes are active.
-	for i := 0; i < 4; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if err := database.EnsureSchema(ctx, db); err != nil {
+	for range 4 {
+		wg.Go(func() {
+			if err := EnsureSchema(ctx, db); err != nil {
 				failures <- err
 			}
-		}()
+		})
 	}
 	wg.Wait()
-	close(ids)
+	close(createdIDs)
 	close(failures)
 	for err := range failures {
 		t.Error(err)
 	}
 	seen := map[uint64]bool{}
-	for id := range ids {
+	for id := range createdIDs {
 		if id <= 100 || seen[id] {
 			t.Errorf("duplicate/import-conflicting ID: %d", id)
 		}
@@ -274,18 +331,16 @@ func TestMongoDBConcurrentIDsAndRestart(t *testing.T) {
 	if _, err := db.Collection("employees").DeleteOne(ctx, bson.M{"id": 100 + workers}); err != nil {
 		t.Fatal(err)
 	}
-	if err := database.EnsureSchema(ctx, db); err != nil {
-		t.Fatal(err)
-	}
-	created, err := uc.CreateEmployee(ctx, dto.CreateEmployeeDto{Name: "After restart", Email: "restart@example.com", BranchID: 1, DepartmentID: 2})
+	ensureSchema(t, db)
+	created, err := create.Execute(ctx, dto.EmployeeInputDTO{Name: "After restart", Email: "restart@example.com", BranchID: 1, DepartmentID: 2})
 	if err != nil || created.ID != 101+workers {
 		t.Fatalf("counter moved backwards: %+v, %v", created, err)
 	}
-	// Force an imported-ID collision to verify the API repository maps duplicate keys.
+	// Force an imported-ID collision to verify the adapter maps duplicate keys.
 	if _, err := db.Collection(database.CountersCollection).UpdateOne(ctx, bson.M{"_id": "employees"}, bson.M{"$set": bson.M{"seq": int64(99)}}); err != nil {
 		t.Fatal(err)
 	}
-	_, err = uc.CreateEmployee(ctx, dto.CreateEmployeeDto{Name: "Collision", Email: "collision@example.com", BranchID: 1, DepartmentID: 2})
+	_, err = create.Execute(ctx, dto.EmployeeInputDTO{Name: "Collision", Email: "collision@example.com", BranchID: 1, DepartmentID: 2})
 	if !errors.Is(err, exception.ErrConflict) {
 		t.Fatalf("duplicate error not mapped: %v", err)
 	}
@@ -293,14 +348,12 @@ func TestMongoDBConcurrentIDsAndRestart(t *testing.T) {
 
 func TestMongoDBEmptyCollections(t *testing.T) {
 	db := testDatabase(t)
-	if err := database.EnsureSchema(context.Background(), db); err != nil {
-		t.Fatal(err)
-	}
+	ensureSchema(t, db)
 	gin.SetMode(gin.TestMode)
 	router := testRouter(t, db)
-	for _, name := range []string{"employees", "machines", "monitors", "phones", "printers"} {
-		result := callAPI(t, router, "GET", "/api/"+name, nil, 200)
-		if string(result) != "[]" {
+	for _, name := range []string{"employees", "machines", "monitors", "phones", "printers", "emails", "branches", "departments", "changes"} {
+		want := `{"content":[],"paging":{"total_elements":0,"size":20,"page":0,"total_pages":0,"has_content":false,"has_next":false,"has_previous":false}}`
+		if result := callAPI(t, router, "GET", "/api/"+name, nil, 200); string(result) != want {
 			t.Fatalf("%s: %s", name, result)
 		}
 	}

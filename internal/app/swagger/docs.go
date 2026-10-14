@@ -18,30 +18,301 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/changes/recent": {
+        "/branches": {
             "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "summary": "Lista filiais",
+                "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Página, começando em 0",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "id",
+                            "name"
+                        ],
+                        "type": "string",
+                        "description": "Campo de ordenação",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nome (parcial, sem diferenciar maiúsculas)",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.BranchResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "CORE_001",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/branches/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "summary": "Busca filial por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BranchResponseDTO"
+                        }
+                    },
+                    "404": {
+                        "description": "BRANCH_001",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/changes": {
+            "get": {
+                "description": "Resolve o nome do editor e devolve só os campos escalares alterados, sem segredos nem snapshots.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "changes"
                 ],
-                "summary": "List the ten most recent inventory updates",
+                "summary": "Lista alterações do inventário",
+                "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Página, começando em 0",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "DESC para as mais recentes primeiro",
+                        "name": "direction",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.RecentChangesResponseDto"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.ChangeResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "400": {
+                        "description": "CORE_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/departments": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "summary": "Lista departamentos",
+                "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Página, começando em 0",
+                        "name": "page",
+                        "in": "query"
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "id",
+                            "name"
+                        ],
+                        "type": "string",
+                        "description": "Campo de ordenação",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nome (parcial, sem diferenciar maiúsculas)",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.DepartmentResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "CORE_001",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/departments/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "summary": "Busca departamento por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DepartmentResponseDTO"
+                        }
+                    },
+                    "404": {
+                        "description": "DEPARTMENT_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -51,101 +322,76 @@ const docTemplate = `{
         },
         "/emails": {
             "get": {
-                "description": "Retorna todos os registros de usableEmails em ordem crescente de ID, incluindo password_hash em texto puro, exatamente como armazenado. Retorna data como uma lista vazia quando não houver registros.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "emails"
                 ],
-                "summary": "Lista todos os emails",
+                "summary": "Lista emails ativos",
+                "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Página, começando em 0",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de ordenação; o id desempata",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário (parcial, sem diferenciar maiúsculas)",
+                        "name": "user",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.EmailListResponseDto"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "504": {
-                        "description": "Tempo limite da operação no banco de dados",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Substitui user, email e password_hash do registro indicado pelo ID; os três campos são obrigatórios. Preserva id e created_at. A senha é armazenada e retornada em texto puro, sem alterações. Não cria registros quando o ID não existe.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "emails"
-                ],
-                "summary": "Atualiza um email",
-                "parameters": [
-                    {
-                        "maximum": 2147483647,
-                        "minimum": 1,
-                        "type": "integer",
-                        "format": "int32",
-                        "description": "ID do email (inteiro positivo de 32 bits)",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "description": "Dados atualizados do email",
-                        "name": "email",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateEmailDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Email atualizado; status: email updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/dto.EmailResponseDto"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.EmailResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "ID ou dados inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Email não encontrado",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflito de registro",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "504": {
-                        "description": "Tempo limite da operação no banco de dados",
+                        "description": "CORE_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -153,7 +399,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Cria um registro em usableEmails com ID int32 e created_at gerados pelo servidor. Os campos user, email e password_hash são obrigatórios. A senha é armazenada e retornada em texto puro, sem alterações.",
+                "description": "ID e created_at são gerados pelo servidor.",
                 "consumes": [
                     "application/json"
                 ],
@@ -163,148 +409,33 @@ const docTemplate = `{
                 "tags": [
                     "emails"
                 ],
-                "summary": "Cria um email",
+                "summary": "Cria email",
                 "parameters": [
                     {
-                        "description": "Dados do email",
-                        "name": "email",
+                        "description": "Dados",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateEmailDto"
+                            "$ref": "#/definitions/dto.EmailInputDTO"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Email criado; status: created",
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.EmailResponseDto"
+                            "$ref": "#/definitions/dto.EmailResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "Dados inválidos",
+                        "description": "CORE_001 ou CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "409": {
-                        "description": "Conflito de registro",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor ou IDs esgotados",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "504": {
-                        "description": "Tempo limite da operação no banco de dados",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/emails/deactivate": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "deactivation"
-                ],
-                "summary": "Deactivate an inventory record",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "Record ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.DeactivationResponseDto"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/emails/id": {
-            "get": {
-                "description": "Retorna um email de usableEmails pelo ID. O campo password_hash retorna a senha em texto puro, exatamente como armazenada.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "emails"
-                ],
-                "summary": "Busca email por ID",
-                "parameters": [
-                    {
-                        "maximum": 2147483647,
-                        "minimum": 1,
-                        "type": "integer",
-                        "format": "int32",
-                        "description": "ID do email (inteiro positivo de 32 bits)",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.EmailResponseDto"
-                        }
-                    },
-                    "400": {
-                        "description": "ID inválido ou não informado",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Email não encontrado",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "504": {
-                        "description": "Tempo limite da operação no banco de dados",
+                        "description": "CORE_004",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -314,25 +445,38 @@ const docTemplate = `{
         },
         "/emails/inactive": {
             "get": {
+                "description": "Retorna só id e deactivated_at, ordenados por id, separado do inventário ativo.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "deactivation"
                 ],
-                "summary": "List deactivation history separately from active inventory",
+                "summary": "Lista o histórico de desativação",
                 "parameters": [
                     {
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Last ID from previous page (default 0)",
-                        "name": "after",
+                        "description": "Página, começando em 0",
+                        "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 0,
                         "type": "integer",
-                        "description": "Page size (1-100, default 50)",
-                        "name": "limit",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
                         "in": "query"
                     }
                 ],
@@ -340,46 +484,42 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.InactivePageResponseDto"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.DeactivationResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
             }
         },
-        "/emails/user": {
+        "/emails/{id}": {
             "get": {
-                "description": "Busca parcial pelo campo user, sem diferenciar maiúsculas de minúsculas; caracteres especiais são tratados literalmente. Espaços nas extremidades da busca são removidos. Retorna o email com menor ID quando houver múltiplos resultados. O campo password_hash retorna a senha em texto puro, exatamente como armazenada.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "emails"
                 ],
-                "summary": "Busca email por usuário",
+                "summary": "Busca email ativo por ID",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Usuário do email (não pode ser vazio)",
-                        "name": "user",
-                        "in": "query",
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -387,29 +527,101 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.EmailResponseDto"
+                            "$ref": "#/definitions/dto.EmailResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "Usuário não informado ou vazio",
+                        "description": "CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Email não encontrado",
+                        "description": "EMAIL_001",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Substitui os campos editáveis; preserva id, created_at e campos desconhecidos. Registra auditoria.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "emails"
+                ],
+                "summary": "Atualiza email ativo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.EmailInputDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.EmailResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "CORE_001 ou CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Erro interno do servidor",
+                    "404": {
+                        "description": "EMAIL_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Registra deactivated_at uma única vez; repetir devolve o mesmo horário. Desativar um funcionário remove-o dos equipamentos ativos.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deactivation"
+                ],
+                "summary": "Desativa um registro (soft delete)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeactivationResponseDTO"
+                        }
                     },
-                    "504": {
-                        "description": "Tempo limite da operação no banco de dados",
+                    "404": {
+                        "description": "XXX_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -419,212 +631,132 @@ const docTemplate = `{
         },
         "/employees": {
             "get": {
-                "description": "Retorna todos os funcionários cadastrados.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "employees"
                 ],
-                "summary": "Lista todos os funcionários",
-                "responses": {
-                    "200": {
-                        "description": "Funcionários encontrados com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Atualiza os dados de um funcionário existente através do ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "employees"
-                ],
-                "summary": "Atualiza um funcionário",
+                "summary": "Lista funcionários ativos",
                 "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Página, começando em 0",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de ordenação; o id desempata",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nome (parcial, sem diferenciar maiúsculas)",
+                        "name": "name",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "ID do funcionário",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "ID da filial",
+                        "name": "branch_id",
+                        "in": "query"
                     },
-                    {
-                        "description": "Dados atualizados do funcionário",
-                        "name": "employee",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateEmployeeDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Funcionário atualizado com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "ID inválido ou dados inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Funcionário não encontrado",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Cria um novo funcionário a partir dos dados enviados no corpo da requisição.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "employees"
-                ],
-                "summary": "Cria um novo funcionário",
-                "parameters": [
-                    {
-                        "description": "Dados do funcionário",
-                        "name": "employee",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateEmployeeDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Funcionário criado com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Dados inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/employees/deactivate": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "deactivation"
-                ],
-                "summary": "Deactivate an inventory record",
-                "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Record ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "ID do departamento",
+                        "name": "department_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.DeactivationResponseDto"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.EmployeeResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
+                        "description": "CORE_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
-            }
-        },
-        "/employees/id": {
-            "get": {
-                "description": "Busca um funcionário pelo ID informado como query parameter.",
+            },
+            "post": {
+                "description": "ID e created_at são gerados pelo servidor.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "employees"
                 ],
-                "summary": "Busca funcionário por ID",
+                "summary": "Cria funcionário",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "ID do funcionário",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "Dados",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.EmployeeInputDTO"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Funcionário encontrado com sucesso",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.EmployeeResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "ID inválido ou não informado",
+                        "description": "CORE_001 ou CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Funcionário não encontrado",
+                    "409": {
+                        "description": "CORE_004",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -634,25 +766,38 @@ const docTemplate = `{
         },
         "/employees/inactive": {
             "get": {
+                "description": "Retorna só id e deactivated_at, ordenados por id, separado do inventário ativo.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "deactivation"
                 ],
-                "summary": "List deactivation history separately from active inventory",
+                "summary": "Lista o histórico de desativação",
                 "parameters": [
                     {
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Last ID from previous page (default 0)",
-                        "name": "after",
+                        "description": "Página, começando em 0",
+                        "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 0,
                         "type": "integer",
-                        "description": "Page size (1-100, default 50)",
-                        "name": "limit",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
                         "in": "query"
                     }
                 ],
@@ -660,65 +805,144 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.InactivePageResponseDto"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.DeactivationResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
             }
         },
-        "/employees/name": {
+        "/employees/{id}": {
             "get": {
-                "description": "Busca um funcionário pelo nome informado como query parameter.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "employees"
                 ],
-                "summary": "Busca funcionário por nome",
+                "summary": "Busca funcionário ativo por ID",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Nome do funcionário",
-                        "name": "name",
-                        "in": "query",
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Funcionário encontrado com sucesso",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.EmployeeResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "Nome não informado",
+                        "description": "CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Funcionário não encontrado",
+                        "description": "EMPLOYEE_001",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Substitui os campos editáveis; preserva id, created_at e campos desconhecidos. Registra auditoria.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "employees"
+                ],
+                "summary": "Atualiza funcionário ativo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.EmployeeInputDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.EmployeeResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "CORE_001 ou CORE_002",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "EMPLOYEE_001",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Registra deactivated_at uma única vez; repetir devolve o mesmo horário. Desativar um funcionário remove-o dos equipamentos ativos.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deactivation"
+                ],
+                "summary": "Desativa um registro (soft delete)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeactivationResponseDTO"
+                        }
+                    },
+                    "404": {
+                        "description": "XXX_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -728,255 +952,130 @@ const docTemplate = `{
         },
         "/machines": {
             "get": {
-                "description": "Retorna todas as máquinas cadastradas.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "machines"
                 ],
-                "summary": "Lista todas as máquinas",
-                "responses": {
-                    "200": {
-                        "description": "Máquinas encontradas com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Atualiza os dados de uma máquina existente através do ID informado como query parameter.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "machines"
-                ],
-                "summary": "Atualiza uma máquina",
+                "summary": "Lista máquinas ativos",
                 "parameters": [
                     {
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "ID da máquina",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "Página, começando em 0",
+                        "name": "page",
+                        "in": "query"
                     },
                     {
-                        "description": "Dados atualizados da máquina",
-                        "name": "machine",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateMachineDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Máquina atualizada com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "ID ou dados inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Máquina não encontrada",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Cria uma nova máquina a partir dos dados enviados no corpo da requisição.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "machines"
-                ],
-                "summary": "Cria uma nova máquina",
-                "parameters": [
-                    {
-                        "description": "Dados da máquina",
-                        "name": "machine",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateMachineDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Máquina criada com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Dados inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/machines/deactivate": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "deactivation"
-                ],
-                "summary": "Deactivate an inventory record",
-                "parameters": [
-                    {
+                        "maximum": 100,
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Record ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de ordenação; o id desempata",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "IDs de funcionários (repetir o parâmetro; qualquer um)",
+                        "name": "employee_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Somente sem funcionário",
+                        "name": "unassigned",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.DeactivationResponseDto"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.MachineResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
+                        "description": "CORE_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
-            }
-        },
-        "/machines/employee_id": {
-            "get": {
-                "description": "Retorna as máquinas vinculadas ao funcionário informado pelo ID.",
+            },
+            "post": {
+                "description": "ID e created_at são gerados pelo servidor.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "machines"
                 ],
-                "summary": "Busca máquinas por funcionário",
+                "summary": "Cria máquina",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "ID do funcionário",
-                        "name": "employee_id",
-                        "in": "query",
-                        "required": true
+                        "description": "Dados",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MachineInputDTO"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Máquinas encontradas com sucesso",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.MachineResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "ID do funcionário inválido ou não informado",
+                        "description": "CORE_001 ou CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Nenhuma máquina encontrada para o funcionário",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/machines/id": {
-            "get": {
-                "description": "Busca uma máquina pelo ID informado como query parameter.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "machines"
-                ],
-                "summary": "Busca máquina por ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "ID da máquina",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Máquina encontrada com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "ID inválido ou não informado",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Máquina não encontrada",
+                    "409": {
+                        "description": "CORE_004",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -986,25 +1085,38 @@ const docTemplate = `{
         },
         "/machines/inactive": {
             "get": {
+                "description": "Retorna só id e deactivated_at, ordenados por id, separado do inventário ativo.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "deactivation"
                 ],
-                "summary": "List deactivation history separately from active inventory",
+                "summary": "Lista o histórico de desativação",
                 "parameters": [
                     {
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Last ID from previous page (default 0)",
-                        "name": "after",
+                        "description": "Página, começando em 0",
+                        "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 0,
                         "type": "integer",
-                        "description": "Page size (1-100, default 50)",
-                        "name": "limit",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
                         "in": "query"
                     }
                 ],
@@ -1012,31 +1124,28 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.InactivePageResponseDto"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.DeactivationResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
             }
         },
-        "/machines/unassigned": {
+        "/machines/{id}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -1044,38 +1153,31 @@ const docTemplate = `{
                 "tags": [
                     "machines"
                 ],
-                "summary": "List active machines without an assigned employee",
+                "summary": "Busca máquina ativo por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/monitors": {
-            "get": {
-                "description": "Retorna todos os monitores cadastrados.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "monitors"
-                ],
-                "summary": "Lista todos os monitores",
-                "responses": {
-                    "200": {
-                        "description": "Monitores encontrados com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.MachineResponseDTO"
                         }
                     },
-                    "500": {
-                        "description": "Erro interno do servidor",
+                    "400": {
+                        "description": "CORE_002",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "MACHINE_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -1083,7 +1185,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Atualiza os dados de um monitor existente através do ID.",
+                "description": "Substitui os campos editáveis; preserva id, created_at e campos desconhecidos. Registra auditoria.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1091,112 +1193,63 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "monitors"
+                    "machines"
                 ],
-                "summary": "Atualiza um monitor",
+                "summary": "Atualiza máquina ativo",
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "ID do monitor",
+                        "description": "ID",
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Dados atualizados do monitor",
-                        "name": "monitor",
+                        "description": "Dados",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateMonitorDto"
+                            "$ref": "#/definitions/dto.MachineInputDTO"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Monitor atualizado com sucesso",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.MachineResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "ID inválido ou dados inválidos",
+                        "description": "CORE_001 ou CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Monitor não encontrado",
+                        "description": "MACHINE_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
             },
-            "post": {
-                "description": "Cria um novo monitor a partir dos dados enviados no corpo da requisição.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "monitors"
-                ],
-                "summary": "Cria um novo monitor",
-                "parameters": [
-                    {
-                        "description": "Dados do monitor",
-                        "name": "monitor",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateMonitorDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Monitor criado com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Dados inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitors/deactivate": {
-            "post": {
+            "delete": {
+                "description": "Registra deactivated_at uma única vez; repetir devolve o mesmo horário. Desativar um funcionário remove-o dos equipamentos ativos.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "deactivation"
                 ],
-                "summary": "Deactivate an inventory record",
+                "summary": "Desativa um registro (soft delete)",
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Record ID",
+                        "description": "ID",
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -1204,23 +1257,11 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.DeactivationResponseDto"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
+                            "$ref": "#/definitions/dto.DeactivationResponseDTO"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "XXX_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -1228,85 +1269,132 @@ const docTemplate = `{
                 }
             }
         },
-        "/monitors/employee_id": {
+        "/monitors": {
             "get": {
-                "description": "Retorna todos os monitores associados ao ID de um funcionário.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "monitors"
                 ],
-                "summary": "Busca monitores por funcionário",
+                "summary": "Lista monitores ativos",
                 "parameters": [
                     {
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "ID do funcionário",
+                        "description": "Página, começando em 0",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de ordenação; o id desempata",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "IDs de funcionários (repetir o parâmetro; qualquer um)",
                         "name": "employee_id",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Somente sem funcionário",
+                        "name": "unassigned",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Monitores encontrados com sucesso",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.MonitorResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "ID do funcionário inválido ou não informado",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Nenhum monitor encontrado para o funcionário",
+                        "description": "CORE_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
-            }
-        },
-        "/monitors/id": {
-            "get": {
-                "description": "Busca um monitor pelo ID informado como query parameter.",
+            },
+            "post": {
+                "description": "ID e created_at são gerados pelo servidor.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "monitors"
                 ],
-                "summary": "Busca monitor por ID",
+                "summary": "Cria monitor",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "ID do monitor",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "Dados",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MonitorInputDTO"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Monitor encontrado com sucesso",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.MonitorResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "ID inválido ou não informado",
+                        "description": "CORE_001 ou CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Monitor não encontrado",
+                    "409": {
+                        "description": "CORE_004",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -1316,25 +1404,38 @@ const docTemplate = `{
         },
         "/monitors/inactive": {
             "get": {
+                "description": "Retorna só id e deactivated_at, ordenados por id, separado do inventário ativo.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "deactivation"
                 ],
-                "summary": "List deactivation history separately from active inventory",
+                "summary": "Lista o histórico de desativação",
                 "parameters": [
                     {
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Last ID from previous page (default 0)",
-                        "name": "after",
+                        "description": "Página, começando em 0",
+                        "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 0,
                         "type": "integer",
-                        "description": "Page size (1-100, default 50)",
-                        "name": "limit",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
                         "in": "query"
                     }
                 ],
@@ -1342,31 +1443,28 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.InactivePageResponseDto"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.DeactivationResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
             }
         },
-        "/monitors/unassigned": {
+        "/monitors/{id}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -1374,38 +1472,31 @@ const docTemplate = `{
                 "tags": [
                     "monitors"
                 ],
-                "summary": "List active monitors without an assigned employee",
+                "summary": "Busca monitor ativo por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/phones": {
-            "get": {
-                "description": "Retorna todos os telefones cadastrados.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "phones"
-                ],
-                "summary": "Lista todos os telefones",
-                "responses": {
-                    "200": {
-                        "description": "Telefones encontrados com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.MonitorResponseDTO"
                         }
                     },
-                    "500": {
-                        "description": "Erro interno do servidor",
+                    "400": {
+                        "description": "CORE_002",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "MONITOR_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -1413,7 +1504,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Atualiza os dados de um telefone existente através do ID informado como query parameter.",
+                "description": "Substitui os campos editáveis; preserva id, created_at e campos desconhecidos. Registra auditoria.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1421,112 +1512,63 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "phones"
+                    "monitors"
                 ],
-                "summary": "Atualiza um telefone",
+                "summary": "Atualiza monitor ativo",
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "ID do telefone",
+                        "description": "ID",
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Dados atualizados do telefone",
-                        "name": "phone",
+                        "description": "Dados",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreatePhoneDto"
+                            "$ref": "#/definitions/dto.MonitorInputDTO"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Telefone atualizado com sucesso",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.MonitorResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "ID ou dados inválidos",
+                        "description": "CORE_001 ou CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Telefone não encontrado",
+                        "description": "MONITOR_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
             },
-            "post": {
-                "description": "Cria um novo telefone a partir dos dados enviados no corpo da requisição.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "phones"
-                ],
-                "summary": "Cria um novo telefone",
-                "parameters": [
-                    {
-                        "description": "Dados do telefone",
-                        "name": "phone",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreatePhoneDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Telefone criado com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Dados inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/phones/deactivate": {
-            "post": {
+            "delete": {
+                "description": "Registra deactivated_at uma única vez; repetir devolve o mesmo horário. Desativar um funcionário remove-o dos equipamentos ativos.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "deactivation"
                 ],
-                "summary": "Deactivate an inventory record",
+                "summary": "Desativa um registro (soft delete)",
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Record ID",
+                        "description": "ID",
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -1534,23 +1576,11 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.DeactivationResponseDto"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
+                            "$ref": "#/definitions/dto.DeactivationResponseDTO"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "XXX_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -1558,85 +1588,132 @@ const docTemplate = `{
                 }
             }
         },
-        "/phones/employee_id": {
+        "/phones": {
             "get": {
-                "description": "Retorna os telefones vinculados ao funcionário informado pelo ID.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "phones"
                 ],
-                "summary": "Busca telefones por funcionário",
+                "summary": "Lista celulares ativos",
                 "parameters": [
                     {
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "ID do funcionário",
+                        "description": "Página, começando em 0",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de ordenação; o id desempata",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "IDs de funcionários (repetir o parâmetro; qualquer um)",
                         "name": "employee_id",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Somente sem funcionário",
+                        "name": "unassigned",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Telefones encontrados com sucesso",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.PhoneResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "ID do funcionário inválido ou não informado",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Nenhum telefone encontrado para o funcionário",
+                        "description": "CORE_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
-            }
-        },
-        "/phones/id": {
-            "get": {
-                "description": "Busca um telefone pelo ID informado como query parameter.",
+            },
+            "post": {
+                "description": "ID e created_at são gerados pelo servidor.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "phones"
                 ],
-                "summary": "Busca telefone por ID",
+                "summary": "Cria celular",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "ID do telefone",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "Dados",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PhoneInputDTO"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Telefone encontrado com sucesso",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.PhoneResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "ID inválido ou não informado",
+                        "description": "CORE_001 ou CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Telefone não encontrado",
+                    "409": {
+                        "description": "CORE_004",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -1646,25 +1723,38 @@ const docTemplate = `{
         },
         "/phones/inactive": {
             "get": {
+                "description": "Retorna só id e deactivated_at, ordenados por id, separado do inventário ativo.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "deactivation"
                 ],
-                "summary": "List deactivation history separately from active inventory",
+                "summary": "Lista o histórico de desativação",
                 "parameters": [
                     {
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Last ID from previous page (default 0)",
-                        "name": "after",
+                        "description": "Página, começando em 0",
+                        "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 0,
                         "type": "integer",
-                        "description": "Page size (1-100, default 50)",
-                        "name": "limit",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
                         "in": "query"
                     }
                 ],
@@ -1672,23 +1762,144 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.InactivePageResponseDto"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.DeactivationResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/phones/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Busca celular ativo por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PhoneResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
+                        "description": "CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "PHONE_001",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Substitui os campos editáveis; preserva id, created_at e campos desconhecidos. Registra auditoria.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "phones"
+                ],
+                "summary": "Atualiza celular ativo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PhoneInputDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PhoneResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "CORE_001 ou CORE_002",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "PHONE_001",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Registra deactivated_at uma única vez; repetir devolve o mesmo horário. Desativar um funcionário remove-o dos equipamentos ativos.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deactivation"
+                ],
+                "summary": "Desativa um registro (soft delete)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeactivationResponseDTO"
+                        }
+                    },
+                    "404": {
+                        "description": "XXX_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -1698,212 +1909,126 @@ const docTemplate = `{
         },
         "/printers": {
             "get": {
-                "description": "Retorna todas as impressoras cadastradas.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "printers"
                 ],
-                "summary": "Lista todas as impressoras",
-                "responses": {
-                    "200": {
-                        "description": "Impressoras encontradas com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Atualiza os dados de uma impressora existente através do ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "printers"
-                ],
-                "summary": "Atualiza uma impressora",
+                "summary": "Lista impressoras ativos",
                 "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Página, começando em 0",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de ordenação; o id desempata",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "ID da impressora",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "ID da filial",
+                        "name": "branch_id",
+                        "in": "query"
                     },
-                    {
-                        "description": "Dados atualizados da impressora",
-                        "name": "printer",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreatePrinterDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Impressora atualizada com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "ID inválido ou dados inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Impressora não encontrada",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Cria uma nova impressora a partir dos dados enviados no corpo da requisição.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "printers"
-                ],
-                "summary": "Cria uma nova impressora",
-                "parameters": [
-                    {
-                        "description": "Dados da impressora",
-                        "name": "printer",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreatePrinterDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Impressora criada com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Dados inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/printers/deactivate": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "deactivation"
-                ],
-                "summary": "Deactivate an inventory record",
-                "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Record ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "ID do departamento",
+                        "name": "departments_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.DeactivationResponseDto"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.PrinterResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
+                        "description": "CORE_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
-            }
-        },
-        "/printers/id": {
-            "get": {
-                "description": "Busca uma impressora pelo ID informado como query parameter.",
+            },
+            "post": {
+                "description": "ID e created_at são gerados pelo servidor.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "printers"
                 ],
-                "summary": "Busca impressora por ID",
+                "summary": "Cria impressora",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "ID da impressora",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
+                        "description": "Dados",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PrinterInputDTO"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Impressora encontrada com sucesso",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.PrinterResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "ID inválido ou não informado",
+                        "description": "CORE_001 ou CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Impressora não encontrada",
+                    "409": {
+                        "description": "CORE_004",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -1913,25 +2038,38 @@ const docTemplate = `{
         },
         "/printers/inactive": {
             "get": {
+                "description": "Retorna só id e deactivated_at, ordenados por id, separado do inventário ativo.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "deactivation"
                 ],
-                "summary": "List deactivation history separately from active inventory",
+                "summary": "Lista o histórico de desativação",
                 "parameters": [
                     {
+                        "minimum": 0,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Last ID from previous page (default 0)",
-                        "name": "after",
+                        "description": "Página, começando em 0",
+                        "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 0,
                         "type": "integer",
-                        "description": "Page size (1-100, default 50)",
-                        "name": "limit",
+                        "description": "Itens por página (0 = 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Direção da ordenação",
+                        "name": "direction",
                         "in": "query"
                     }
                 ],
@@ -1939,151 +2077,144 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.InactivePageResponseDto"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.PageDoc"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "content": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.DeactivationResponseDTO"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/printers/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "printers"
+                ],
+                "summary": "Busca impressora ativo por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PrinterResponseDTO"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
+                        "description": "CORE_002",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "PRINTER_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
-            }
-        },
-        "/utils/branch": {
-            "get": {
-                "description": "Retorna o nome dela de acordo com o ID passado.",
+            },
+            "put": {
+                "description": "Substitui os campos editáveis; preserva id, created_at e campos desconhecidos. Registra auditoria.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "branches"
+                    "printers"
                 ],
-                "summary": "Mostra o nome da branch",
+                "summary": "Atualiza impressora ativo",
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "ID da branch",
+                        "description": "ID",
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PrinterInputDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PrinterResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "CORE_001 ou CORE_002",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "PRINTER_001",
+                        "schema": {
+                            "$ref": "#/definitions/exception.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Registra deactivated_at uma única vez; repetir devolve o mesmo horário. Desativar um funcionário remove-o dos equipamentos ativos.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deactivation"
+                ],
+                "summary": "Desativa um registro (soft delete)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Branch encontrada com sucesso",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.DeactivationResponseDTO"
                         }
                     },
                     "404": {
-                        "description": "Branch não encontrada",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/utils/branches": {
-            "get": {
-                "description": "Retorna todas as filiais criadas no banco de dados.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "branches"
-                ],
-                "summary": "Lista todas as filiais criadas",
-                "responses": {
-                    "200": {
-                        "description": "Filias encontrados com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/utils/department": {
-            "get": {
-                "description": "Retorna o nome dele de acordo com o ID passado.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "departments"
-                ],
-                "summary": "Mostra o nome do departamento",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "ID do department",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Department encontrada com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Department não encontrada",
-                        "schema": {
-                            "$ref": "#/definitions/exception.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/utils/departments": {
-            "get": {
-                "description": "Retorna todos os setores criados no banco de dados.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "departments"
-                ],
-                "summary": "Lista todos os setores criados",
-                "responses": {
-                    "200": {
-                        "description": "Setores encontrados com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor",
+                        "description": "XXX_001",
                         "schema": {
                             "$ref": "#/definitions/exception.ErrorResponse"
                         }
@@ -2093,7 +2224,50 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.ChangedFieldDto": {
+        "dto.BranchResponseDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ChangeResponseDTO": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "changed_fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ChangedFieldDTO"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "resource_id": {
+                    "type": "integer"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ChangedFieldDTO": {
             "type": "object",
             "properties": {
                 "after": {
@@ -2107,7 +2281,29 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateEmailDto": {
+        "dto.DeactivationResponseDTO": {
+            "type": "object",
+            "properties": {
+                "deactivated_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.DepartmentResponseDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.EmailInputDTO": {
             "type": "object",
             "required": [
                 "email",
@@ -2130,7 +2326,35 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateEmployeeDto": {
+        "dto.EmailResponseDTO": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2026-01-01T00:00:00Z"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "ana@example.com"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32",
+                    "example": 42
+                },
+                "password_hash": {
+                    "description": "PasswordHash contains the plaintext password as stored in usableEmails.",
+                    "type": "string",
+                    "example": "example-password"
+                },
+                "user": {
+                    "type": "string",
+                    "example": "Ana"
+                }
+            }
+        },
+        "dto.EmployeeInputDTO": {
             "type": "object",
             "required": [
                 "branch_id",
@@ -2172,7 +2396,45 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateMachineDto": {
+        "dto.EmployeeResponseDTO": {
+            "type": "object",
+            "properties": {
+                "branch_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "department_id": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "emails": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "phones": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.MachineInputDTO": {
             "type": "object",
             "required": [
                 "model",
@@ -2226,7 +2488,54 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateMonitorDto": {
+        "dto.MachineResponseDTO": {
+            "type": "object",
+            "properties": {
+                "asset_number": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "employee_id": {
+                    "type": "integer"
+                },
+                "employee_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "has_keyboard": {
+                    "type": "boolean"
+                },
+                "has_mouse": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "machine_condition": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "serial_number": {
+                    "type": "string"
+                },
+                "situation": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MonitorInputDTO": {
             "type": "object",
             "required": [
                 "model"
@@ -2271,7 +2580,86 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreatePhoneDto": {
+        "dto.MonitorResponseDTO": {
+            "type": "object",
+            "properties": {
+                "asset_number": {
+                    "type": "integer"
+                },
+                "brand": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "employee_id": {
+                    "type": "integer"
+                },
+                "employee_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "has_monitor": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "monitor_condition": {
+                    "type": "string"
+                },
+                "serial_number": {
+                    "type": "string"
+                },
+                "situation": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PageDoc": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "array",
+                    "items": {}
+                },
+                "paging": {
+                    "$ref": "#/definitions/dto.PagingDTO"
+                }
+            }
+        },
+        "dto.PagingDTO": {
+            "type": "object",
+            "properties": {
+                "has_content": {
+                    "type": "boolean"
+                },
+                "has_next": {
+                    "type": "boolean"
+                },
+                "has_previous": {
+                    "type": "boolean"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "total_elements": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PhoneInputDTO": {
             "type": "object",
             "properties": {
                 "employee_id": {
@@ -2312,7 +2700,45 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreatePrinterDto": {
+        "dto.PhoneResponseDTO": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "employee_id": {
+                    "type": "integer"
+                },
+                "employee_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "equipament": {
+                    "type": "string"
+                },
+                "has_chip": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "imei": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "serial_number": {
+                    "type": "string"
+                },
+                "situation": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PrinterInputDTO": {
             "type": "object",
             "required": [
                 "asset_number",
@@ -2347,149 +2773,31 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.DeactivationDto": {
+        "dto.PrinterResponseDTO": {
             "type": "object",
             "properties": {
-                "deactivated_at": {
-                    "type": "string"
-                },
-                "id": {
+                "asset_number": {
                     "type": "integer"
-                }
-            }
-        },
-        "dto.DeactivationResponseDto": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/dto.DeactivationDto"
                 },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.EmailDto": {
-            "type": "object",
-            "properties": {
+                "branch_id": {
+                    "type": "integer"
+                },
                 "created_at": {
-                    "type": "string",
-                    "format": "date-time",
-                    "example": "2026-01-01T00:00:00Z"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "ana@example.com"
-                },
-                "id": {
-                    "type": "integer",
-                    "format": "int32",
-                    "example": 42
-                },
-                "password_hash": {
-                    "description": "PasswordHash contains the plaintext password as stored in usableEmails.",
-                    "type": "string",
-                    "example": "example-password"
-                },
-                "user": {
-                    "type": "string",
-                    "example": "Ana"
-                }
-            }
-        },
-        "dto.EmailListResponseDto": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.EmailDto"
-                    }
-                },
-                "status": {
-                    "type": "string",
-                    "example": "emails retrieved successfully"
-                }
-            }
-        },
-        "dto.EmailResponseDto": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/dto.EmailDto"
-                },
-                "status": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.InactivePageDto": {
-            "type": "object",
-            "properties": {
-                "next_after": {
+                },
+                "departments_id": {
                     "type": "integer"
                 },
-                "records": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.DeactivationDto"
-                    }
-                }
-            }
-        },
-        "dto.InactivePageResponseDto": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/dto.InactivePageDto"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.RecentChangeDto": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "string"
-                },
-                "changed_fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.ChangedFieldDto"
-                    }
-                },
                 "id": {
-                    "type": "string"
-                },
-                "resource": {
-                    "type": "string"
-                },
-                "resource_id": {
                     "type": "integer"
                 },
-                "time": {
+                "ip": {
                     "type": "string"
                 },
-                "user_id": {
+                "machine_condition": {
                     "type": "string"
                 },
-                "user_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.RecentChangesResponseDto": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.RecentChangeDto"
-                    }
-                },
-                "status": {
+                "model": {
                     "type": "string"
                 }
             }

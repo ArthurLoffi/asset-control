@@ -3,17 +3,13 @@
 package app
 
 import (
-	"asset-control/internal/core/database"
-	"context"
 	"net/http"
 	"testing"
 )
 
 func TestMultipleContactsAndAssignmentsRoundTrip(t *testing.T) {
 	db := testDatabase(t)
-	if err := database.EnsureSchema(context.Background(), db); err != nil {
-		t.Fatal(err)
-	}
+	ensureSchema(t, db)
 	router := testRouter(t, db)
 
 	employee := map[string]any{
@@ -25,7 +21,7 @@ func TestMultipleContactsAndAssignmentsRoundTrip(t *testing.T) {
 		t.Fatalf("employee contacts: %v", created)
 	}
 	employee["emails"] = []string{"new@example.com", "other@example.com"}
-	updated := object(t, callAPI(t, router, http.MethodPut, "/api/employees?id=1", employee, http.StatusOK))
+	updated := object(t, callAPI(t, router, http.MethodPut, "/api/employees/1", employee, http.StatusOK))
 	if updated["email"] != "new@example.com" || len(updated["emails"].([]any)) != 2 {
 		t.Fatalf("updated contacts: %v", updated)
 	}
@@ -43,15 +39,17 @@ func TestMultipleContactsAndAssignmentsRoundTrip(t *testing.T) {
 		if created["employee_id"] != float64(11) || len(created["employee_ids"].([]any)) != 2 {
 			t.Fatalf("%s create: %v", resource.name, created)
 		}
-		found := object(t, callAPI(t, router, http.MethodGet, "/api/"+resource.name+"/id?id=1", nil, http.StatusOK))
+		found := object(t, callAPI(t, router, http.MethodGet, "/api/"+resource.name+"/1", nil, http.StatusOK))
 		if len(found["employee_ids"].([]any)) != 2 {
 			t.Fatalf("%s read: %v", resource.name, found)
 		}
 		resource.input["employee_ids"] = []uint64{12, 13}
-		updated := object(t, callAPI(t, router, http.MethodPut, "/api/"+resource.name+"?id=1", resource.input, http.StatusOK))
+		updated := object(t, callAPI(t, router, http.MethodPut, "/api/"+resource.name+"/1", resource.input, http.StatusOK))
 		if updated["employee_id"] != float64(12) || len(updated["employee_ids"].([]any)) != 2 {
 			t.Fatalf("%s update: %v", resource.name, updated)
 		}
-		callAPI(t, router, http.MethodGet, "/api/"+resource.name+"/employee_id?employee_id=13", nil, http.StatusOK)
+		if assigned, _ := page(t, callAPI(t, router, http.MethodGet, "/api/"+resource.name+"?employee_id=13", nil, http.StatusOK)); len(assigned) != 1 {
+			t.Fatalf("%s assignment filter: %v", resource.name, assigned)
+		}
 	}
 }

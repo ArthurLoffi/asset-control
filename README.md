@@ -1,8 +1,10 @@
 # Asset control backend
 
-Go/Gin API backed by MongoDB using the official Go driver v2. Existing `/api`
-URLs, snake_case JSON fields, numeric IDs, and response envelopes are preserved.
-POST responses now include the saved record's generated `id` and `created_at`.
+Go/Gin API backed by MongoDB using the official Go driver v2, organized as
+hexagonal modules (see Layout). snake_case JSON fields and numeric IDs are
+preserved. Every resource follows one REST shape and one paginated listing
+contract ([docs/listing.md](docs/listing.md)); errors follow
+[docs/errors.md](docs/errors.md).
 
 ## Run
 
@@ -53,32 +55,13 @@ be BSON dates, and nullable values should retain their BSON null/boolean types.
 
 Collections remain `employees`, `machines`, `monitors`, `phones`, `printers`,
 `branches`, and `departments`. The renamed email collection is **`usableEmails`**,
-recorded as `database.UsableEmailsCollection` (`internal/core/database`). Email lookups are available through
-`GET /api/emails/id?id=42` and `GET /api/emails/user?user=Ana`.
-`GET /api/emails` lists every email in ascending ID order using the response
-`{ "status": "emails retrieved successfully", "data": [...] }`; an empty
-collection returns `data: []`. Listed records include all five fields, including
-the unchanged plaintext `password_hash`.
-The ID must be a positive int32 (1 through 2147483647). User searches trim outer
-whitespace and use literal, case-insensitive partial matching, returning the
-lowest-ID match, consistent with employee name searches. Missing matches return
-404; missing/invalid search values return 400.
-Both return `{ "status": "email found successfully", "data": { ... } }`, with
-`id`, `user`, `email`, `password_hash`, and `created_at` (RFC 3339 timestamp).
-`password_hash` contains the plaintext password exactly as stored; lookups do
-not hash, mask, or modify it. There is no email delete route.
-
-Create emails with `POST /api/emails` and edit them with
-`PUT /api/emails?id=42`. Both require a JSON body containing `user`, `email`
-(a valid email address), and `password_hash` (a nonempty plaintext password).
-PUT replaces all three fields; it preserves `id`, `created_at`, and unknown
-imported fields, returning 404 for missing IDs. Passwords are not trimmed or
-hashed. POST returns 201 with status `created`; PUT returns 200 with status
-`email updated successfully`. Both include the saved record in `data`.
-Startup creates a unique `id` index and seeds the `usableEmails` ID counter
-from imported records. New IDs are stored as BSON int32; creation fails with
-500 when the int32 ID range is exhausted. Restart the backend before using
-the write routes so the new counter and index are initialized.
+recorded as `database.UsableEmailsCollection` (`internal/core/database`).
+Emails use the same routes as every resource (`/api/emails`, `/api/emails/{id}`,
+`?user=` filter). Records include `id`, `user`, `email`, `password_hash`, and
+`created_at`; `password_hash` is the plaintext password exactly as stored: it is
+never trimmed, hashed, or masked. POST and PUT require `user`, `email` (a valid
+address), and `password_hash`. New IDs are stored as BSON int32; creation fails
+with 500 when the int32 range is exhausted. Email responses are never cached.
 This application does not copy data or rename existing collections.
 
 The additional `_counters` collection allocates numeric IDs atomically. On
@@ -92,7 +75,7 @@ Finish imports before starting the backend. If further records are imported
 later, stop application writes and restart the backend to reseed counters. Other
 writers must use the same counter protocol. Do not delete/reset `_counters`.
 
-PUT replaces the API's mutable fields: omitted nullable fields become null;
+`PUT /api/<resource>/{id}` replaces the API's mutable fields: omitted nullable fields become null;
 `false` remains false. It preserves `_id`, `id`, `created_at`, and fields unknown
 to this backend. Missing IDs return 404 without inserting a document.
 Machine, monitor, and phone situations default to `Em uso`; the original SQL
@@ -141,7 +124,7 @@ docker stop asset-control-mongo-test
 Each integration test creates and drops only a fresh `asset_control_test_*`
 database. `MONGODB_TEST_URI` is required for the `integration` build tag;
 explicit integration runs fail if it is missing or unreachable. The suite
-covers all asset create/read/update/list routes, migrated documents, relationship
+covers all resource routes, the listing contract (paging, sorting, filters), migrated documents, relationship
 filters, literal case-insensitive name searches, defaults, null/false updates,
 validation, error mapping, cancellation, concurrent IDs, and restart behavior.
 
@@ -192,26 +175,8 @@ least one distinct, valid email is required; phone numbers are optional. Machine
 monitor, and phone requests accept distinct positive IDs in `employee_ids`.
 Responses retain `email`, `phone`, and `employee_id` as the first value and
 include the full arrays. Existing singular-only requests and imported records
-remain supported. Employee-ID lookups match any assignment.
+remain supported.
 
-For employees, machines, phones, monitors, printers, and emails:
-
-- `POST /api/<resource>/deactivate?id=<id>` requires a session and browser CSRF
-  protection. It preserves the document and sets `deactivated_at` using the MongoDB
-  server clock. The `{status, data}` response contains `id` and the UTC timestamp.
-  Retries return the original timestamp; missing IDs return 404.
-- Ordinary lists, searches, employee assignment lookups, and PUT operations only
-  access active records. Legacy documents with no timestamp (or null) remain active.
-  Deactivating an employee atomically clears their assignment from active machines,
-  monitors, and phones. The equipment remains active; inactive equipment is untouched.
-- `GET /api/<resource>/inactive?after=0&limit=50` returns a separate history page:
-  `{status, data: {records: [{id, deactivated_at}], next_after}}`. Pass `next_after`
-  as the next `after`; null means the last page. Limit is 1-100. The endpoint returns
-  lifecycle metadata only; the original document remains stored unchanged.
-- Startup creates indexes for active lists, employee assignments, and inactive
-  history. Dashboard requests never load inactive history. No migration of legacy
-  records is required, and ordinary writes cannot reactivate records.
-
-`GET /api/machines/unassigned` lists only active machines with no employee in
-`employee_id` or `employee_ids`, in ascending ID order. An empty result is `data: []`.
-`GET /api/monitors/unassigned` applies the same filter to monitors.
+`DELETE /api/<resource>/{id}` soft-deletes employees, machines, phones, monitors,
+printers, and emails; `GET /api/<resource>/inactive` lists the history. Details
+in [docs/deactivation.md](docs/deactivation.md).

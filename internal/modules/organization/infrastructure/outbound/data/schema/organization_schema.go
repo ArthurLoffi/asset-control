@@ -1,19 +1,19 @@
 package schema
 
-type Branch struct {
-	Id   uint64 `bson:"id" json:"id"`
-	Name string `bson:"name" json:"name"`
+const (
+	BranchCollection     = "branches"
+	DepartmentCollection = "departments"
+)
+
+// OrganizationSortColumns maps the public sort_by value to the stored field.
+var OrganizationSortColumns = map[string]string{"id": "id", "name": "name"}
+
+type BranchDocument struct {
+	ID   uint64 `bson:"id"`
+	Name string `bson:"name"`
 }
 
-func (Branch) CollectionName() string {
-	return "branches"
-}
-
-type Department struct {
-	Id   uint64 `bson:"id" json:"id"`
-	Name string `bson:"name" json:"name"`
-}
-
-func (Department) CollectionName() string {
-	return "departments"
+type DepartmentDocument struct {
+	ID   uint64 `bson:"id"`
+	Name string `bson:"name"`
 }

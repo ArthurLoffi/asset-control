@@ -35,7 +35,7 @@ func validateSituation(value *string) error {
 	return validateChoice("situation", *value, "Em uso", "Sem uso", "Com defeito", "Uso temporário", "Manutenção")
 }
 
-func (input *CreateEmployeeDto) Validate() error {
+func (input *EmployeeInputDTO) Validate() error {
 	input.Name = strings.TrimSpace(input.Name)
 	if input.Emails == nil {
 		input.Emails = []string{input.Email}
@@ -102,7 +102,7 @@ func normalizeEmployeeIDs(single **uint64, many *[]uint64) error {
 	return nil
 }
 
-func (input *CreateMachineDto) Validate() error {
+func (input *MachineInputDTO) Validate() error {
 	if err := normalizeEmployeeIDs(&input.EmployeeID, &input.EmployeeIDs); err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (input *CreateMachineDto) Validate() error {
 	return validateSituation(&input.Situation)
 }
 
-func (input *CreateMonitorDto) Validate() error {
+func (input *MonitorInputDTO) Validate() error {
 	if err := normalizeEmployeeIDs(&input.EmployeeID, &input.EmployeeIDs); err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (input *CreateMonitorDto) Validate() error {
 	return validateSituation(&input.Situation)
 }
 
-func (input *CreatePhoneDto) Validate() error {
+func (input *PhoneInputDTO) Validate() error {
 	if err := normalizeEmployeeIDs(&input.EmployeeID, &input.EmployeeIDs); err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (input *CreatePhoneDto) Validate() error {
 	return validateSituation(&input.Situation)
 }
 
-func (input *CreatePrinterDto) Validate() error {
+func (input *PrinterInputDTO) Validate() error {
 	input.Model = strings.TrimSpace(input.Model)
 	if err := validateInput(input); err != nil {
 		return err

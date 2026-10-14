@@ -18,7 +18,7 @@ func TestPhoneIdentificationRequirements(t *testing.T) {
 			optional := name == "Só chip" || name == "Sem chip"
 			for _, field := range []string{"model", "imei", "serial_number"} {
 				t.Run(field, func(t *testing.T) {
-					input := CreatePhoneDto{Equipament: equipment, Model: "Device", IMEI: "012345678901234", SerialNumber: "SN-1"}
+					input := PhoneInputDTO{Equipament: equipment, Model: "Device", IMEI: "012345678901234", SerialNumber: "SN-1"}
 					switch field {
 					case "model":
 						input.Model = "  "
@@ -42,7 +42,7 @@ func TestPhoneIdentificationRequirements(t *testing.T) {
 
 func TestPhoneOptionalIdentificationPreservesLimitsAndValues(t *testing.T) {
 	for _, equipment := range []string{"Só chip", "Sem chip"} {
-		input := CreatePhoneDto{Equipament: ptr(equipment), Model: "Device", IMEI: "012345678901234", SerialNumber: "SN-1"}
+		input := PhoneInputDTO{Equipament: ptr(equipment), Model: "Device", IMEI: "012345678901234", SerialNumber: "SN-1"}
 		if err := input.Validate(); err != nil {
 			t.Fatal(err)
 		}
@@ -50,7 +50,7 @@ func TestPhoneOptionalIdentificationPreservesLimitsAndValues(t *testing.T) {
 			t.Fatal("identification was changed")
 		}
 		for _, field := range []string{"model", "imei", "serial_number"} {
-			oversized := CreatePhoneDto{Equipament: ptr(equipment)}
+			oversized := PhoneInputDTO{Equipament: ptr(equipment)}
 			switch field {
 			case "model":
 				oversized.Model = strings.Repeat("a", 101)

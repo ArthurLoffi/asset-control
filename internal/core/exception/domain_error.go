@@ -65,3 +65,8 @@ var (
 	ErrConflict = New("Record already exists", ConflictCode, http.StatusConflict, nil)
 	ErrTimeout  = New("Database operation timed out", TimeoutCode, http.StatusGatewayTimeout, nil)
 )
+
+// NotFoundByID builds the 404 domain error of an entity, e.g. ("Machine", "MACHINE_001").
+func NotFoundByID(entity string, code string, id uint64) error {
+	return New(entity+" not found by id", code, http.StatusNotFound, map[string]any{"id": id})
+}

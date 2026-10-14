@@ -3,7 +3,7 @@ package middleware
 import (
 	"bytes"
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -32,10 +32,8 @@ func inventoryResource(path string) string {
 		return ""
 	}
 	switch parts[0] {
-	case "employees", "machines", "monitors", "phones", "printers":
+	case "employees", "machines", "monitors", "phones", "printers", "branches", "departments":
 		return parts[0]
-	case "utils":
-		return "utils"
 	default:
 		return ""
 	}
@@ -54,7 +52,7 @@ func InventoryCache(cache ResponseCache) gin.HandlerFunc {
 			request := c.Request.URL.Path + "?" + c.Request.URL.Query().Encode()
 			body, version, hit, err := cache.Load(c.Request.Context(), resource, request)
 			if err != nil {
-				log.Printf("inventory cache read: %v", err)
+				slog.WarnContext(c.Request.Context(), "inventory cache read", "error", err)
 				c.Next()
 				return
 			}
@@ -68,23 +66,24 @@ func InventoryCache(cache ResponseCache) gin.HandlerFunc {
 			c.Next()
 			if c.Writer.Status() == http.StatusOK && writer.body.Len() > 0 {
 				if err := cache.Store(c.Request.Context(), resource, request, version, writer.body.Bytes()); err != nil {
-					log.Printf("inventory cache write: %v", err)
+					slog.WarnContext(c.Request.Context(), "inventory cache write", "error", err)
 				}
 			}
 			return
 		}
 		c.Next()
-		if (c.Request.Method == http.MethodPost || c.Request.Method == http.MethodPut) &&
+		if c.Request.Method != http.MethodGet &&
 			c.Writer.Status() >= http.StatusOK && c.Writer.Status() < http.StatusMultipleChoices {
 			invalidateCtx, cancel := context.WithTimeout(context.WithoutCancel(c.Request.Context()), 2*time.Second)
 			defer cancel()
 			resources := []string{resource}
-			if c.Request.URL.Path == "/api/employees/deactivate" {
+			// Deactivating an employee also unassigns their equipment.
+			if resource == "employees" && c.Request.Method == http.MethodDelete {
 				resources = append(resources, "machines", "monitors", "phones")
 			}
 			for _, name := range resources {
 				if err := cache.Invalidate(invalidateCtx, name); err != nil {
-					log.Printf("inventory cache invalidation: %v", err)
+					slog.WarnContext(c.Request.Context(), "inventory cache invalidation", "error", err)
 				}
 			}
 		}

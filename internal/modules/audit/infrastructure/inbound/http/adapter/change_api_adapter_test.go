@@ -9,62 +9,63 @@ import (
 	"testing"
 	"time"
 
+	coredto "asset-control/internal/core/dto"
 	"asset-control/internal/modules/audit/application/usecase"
 	"asset-control/internal/modules/audit/domain/dto"
+
 	"github.com/gin-gonic/gin"
 )
 
-type recentChangeStub struct {
-	changes []dto.RecentChangeDto
-	err     error
-	limit   int64
+type fakeChangeDataPort struct {
+	page            coredto.PaginatedResponseDTO[dto.ChangeResponseDTO]
+	err             error
+	receivedRequest dto.ChangeRequestDTO
 }
 
-func (stub *recentChangeStub) ListRecent(_ context.Context, limit int64) ([]dto.RecentChangeDto, error) {
-	stub.limit = limit
-	return stub.changes, stub.err
+func (f *fakeChangeDataPort) FindAll(_ context.Context, request dto.ChangeRequestDTO) (coredto.PaginatedResponseDTO[dto.ChangeResponseDTO], error) {
+	f.receivedRequest = request
+	return f.page, f.err
 }
 
-func TestRecentChangeControllerReturnsBoundedSummary(t *testing.T) {
+func serve(dataPort *fakeChangeDataPort, target string) *httptest.ResponseRecorder {
 	gin.SetMode(gin.TestMode)
-	stub := &recentChangeStub{changes: []dto.RecentChangeDto{{
-		ID: "abc", Time: time.Date(2026, 9, 22, 12, 0, 0, 0, time.UTC),
-		UserID: "editor-id", UserName: "Ana", Resource: "machines", ResourceID: 42, Action: "update",
-		ChangedFields: []dto.ChangedFieldDto{{Field: "model", Before: "Old", After: "New"}},
-	}}}
 	router := gin.New()
-	router.GET("/api/changes/recent", NewRecentChangeController(usecase.NewRecentChangeUseCase(stub)).ListRecent)
+	NewChangeAPIAdapter(usecase.NewFindAllChangesUseCase(dataPort)).RegisterRoutes(router)
 	recorder := httptest.NewRecorder()
-	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/changes/recent", nil))
-	if recorder.Code != http.StatusOK || stub.limit != 10 {
-		t.Fatalf("status %d, limit %d", recorder.Code, stub.limit)
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, target, nil))
+	return recorder
+}
+
+func TestChangeAPIAdapterReturnsSummaryPage(t *testing.T) {
+	dataPort := &fakeChangeDataPort{page: coredto.NewPaginatedResponseDTO([]dto.ChangeResponseDTO{{
+		ID: "abc", Time: time.Date(2026, 9, 22, 12, 0, 0, 0, time.UTC),
+		UserID: "editor-id", UserName: "Ana", Resource: "machine", ResourceID: 42, Action: "update",
+		ChangedFields: []dto.ChangedFieldDTO{{Field: "model", Before: "Old", After: "New"}},
+	}}, 0, 10, 1)}
+	recorder := serve(dataPort, "/changes?page_size=10&direction=desc")
+	if recorder.Code != http.StatusOK || dataPort.receivedRequest.PageSize != 10 || dataPort.receivedRequest.Direction != coredto.DirectionDesc {
+		t.Fatalf("status %d, request %+v", recorder.Code, dataPort.receivedRequest)
 	}
 	var response struct {
-		Data []map[string]any `json:"data"`
+		Content []map[string]any  `json:"content"`
+		Paging  coredto.PagingDTO `json:"paging"`
 	}
 	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
 		t.Fatal(err)
 	}
-	if len(response.Data) != 1 || response.Data[0]["resource_id"] != float64(42) {
-		t.Fatalf("unexpected response: %#v", response.Data)
+	if len(response.Content) != 1 || response.Content[0]["user_name"] != "Ana" || response.Paging.TotalElements != 1 {
+		t.Fatalf("unexpected response: %s", recorder.Body.String())
 	}
-	if response.Data[0]["user_name"] != "Ana" {
-		t.Fatalf("editor name missing: %#v", response.Data[0])
-	}
-	if _, exists := response.Data[0]["object"]; exists {
-		t.Fatal("audit snapshots leaked into the dashboard response")
+	if _, exists := response.Content[0]["object"]; exists {
+		t.Fatal("audit snapshots leaked into the response")
 	}
 }
 
-func TestRecentChangeControllerHandlesDatabaseFailure(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	router := gin.New()
-	router.GET("/api/changes/recent", NewRecentChangeController(usecase.NewRecentChangeUseCase(
-		&recentChangeStub{err: errors.New("database unavailable")},
-	)).ListRecent)
-	recorder := httptest.NewRecorder()
-	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/changes/recent", nil))
-	if recorder.Code != http.StatusInternalServerError {
+func TestChangeAPIAdapterRejectsUnknownSortAndHandlesFailures(t *testing.T) {
+	if recorder := serve(&fakeChangeDataPort{}, "/changes?sort_by=user_id"); recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
+	}
+	if recorder := serve(&fakeChangeDataPort{err: errors.New("database unavailable")}, "/changes"); recorder.Code != http.StatusInternalServerError {
 		t.Fatalf("expected 500, got %d", recorder.Code)
 	}
 }

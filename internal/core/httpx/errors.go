@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"asset-control/internal/core/exception"
 
@@ -53,19 +52,6 @@ func WriteError(c *gin.Context, err error) {
 // NotFound keeps unknown routes inside the error envelope.
 func NotFound(c *gin.Context) {
 	WriteError(c, exception.NewHTTPError(http.StatusNotFound, "Cannot "+c.Request.Method+" "+c.Request.URL.Path))
-}
-
-// QueryID reads a positive ID that fits BSON's signed 64-bit integers.
-func QueryID(c *gin.Context, name string) (uint64, error) {
-	value := c.Query(name)
-	if value == "" {
-		return 0, exception.NewHTTPError(http.StatusBadRequest, "query param '"+name+"' is required")
-	}
-	id, err := strconv.ParseUint(value, 10, 63)
-	if err != nil || id == 0 {
-		return 0, exception.NewHTTPError(http.StatusBadRequest, "invalid '"+name+"' value")
-	}
-	return id, nil
 }
 
 // BindJSON only decodes; use cases normalize and validate the input once.

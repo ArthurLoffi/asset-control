@@ -3,24 +3,23 @@
 package app
 
 import (
-	"asset-control/internal/core/database"
-	"asset-control/internal/modules/inventory/domain/dto"
-	repository "asset-control/internal/modules/inventory/infrastructure/outbound/data/adapter"
 	"context"
-	"encoding/json"
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"fmt"
 	"net/http"
 	"sync"
 	"testing"
 	"time"
+
+	"asset-control/internal/core/database"
+	inventorydata "asset-control/internal/modules/inventory/infrastructure/outbound/data/adapter"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestDeactivationSeparatesActiveRecords(t *testing.T) {
 	db := testDatabase(t)
 	ctx := context.Background()
-	if err := database.EnsureSchema(ctx, db); err != nil {
-		t.Fatal(err)
-	}
+	ensureSchema(t, db)
 	router := testRouter(t, db)
 	for _, resource := range []string{"employees", "machines", "phones", "monitors", "printers", "emails"} {
 		t.Run(resource, func(t *testing.T) {
@@ -39,36 +38,32 @@ func TestDeactivationSeparatesActiveRecords(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			var active []json.RawMessage
-			if err := json.Unmarshal(callAPI(t, router, "GET", "/api/"+resource, nil, 200), &active); err != nil || len(active) != 3 {
-				t.Fatalf("legacy records: %s, %v", active, err)
+			path := "/api/" + resource
+			if active, _ := page(t, callAPI(t, router, "GET", path, nil, 200)); len(active) != 3 {
+				t.Fatalf("legacy records: %v", active)
 			}
-			first := object(t, callAPI(t, router, "POST", "/api/"+resource+"/deactivate?id=1", nil, 200))
+			first := object(t, callAPI(t, router, "DELETE", path+"/1", nil, 200))
 			stamp, err := time.Parse(time.RFC3339Nano, first["deactivated_at"].(string))
-			if err != nil || time.Since(stamp) > time.Minute {
-				t.Fatalf("invalid timestamp: %v", first)
+			if err != nil || time.Since(stamp) > time.Minute || first["id"] != float64(1) {
+				t.Fatalf("invalid deactivation: %v", first)
 			}
-			repeated := object(t, callAPI(t, router, "POST", "/api/"+resource+"/deactivate?id=1", nil, 200))
+			repeated := object(t, callAPI(t, router, "DELETE", path+"/1", nil, 200))
 			if first["deactivated_at"] != repeated["deactivated_at"] {
 				t.Fatal("retry changed the timestamp")
 			}
-			callAPI(t, router, "GET", "/api/"+resource+"/id?id=1", nil, http.StatusNotFound)
-			callAPI(t, router, "POST", "/api/"+resource+"/deactivate?id=99", nil, http.StatusNotFound)
-			if err := json.Unmarshal(callAPI(t, router, "GET", "/api/"+resource, nil, 200), &active); err != nil || len(active) != 2 {
-				t.Fatalf("active list: %s, %v", active, err)
+			callAPI(t, router, "GET", path+"/1", nil, http.StatusNotFound)
+			callAPI(t, router, "DELETE", path+"/99", nil, http.StatusNotFound)
+			if active, _ := page(t, callAPI(t, router, "GET", path, nil, 200)); fmt.Sprint(ids(active)) != "[2 3]" {
+				t.Fatalf("active list: %v", active)
 			}
 			if resource == "machines" || resource == "phones" || resource == "monitors" {
-				if err := json.Unmarshal(callAPI(t, router, "GET", "/api/"+resource+"/employee_id?employee_id=9", nil, 200), &active); err != nil || len(active) != 2 {
-					t.Fatalf("assignment list: %s, %v", active, err)
+				if active, _ := page(t, callAPI(t, router, "GET", path+"?employee_id=9", nil, 200)); len(active) != 2 {
+					t.Fatalf("assignment list: %v", active)
 				}
 			}
 			if resource == "employees" || resource == "emails" {
-				query := "name"
-				if resource == "emails" {
-					query = "user"
-				}
-				found := object(t, callAPI(t, router, "GET", "/api/"+resource+"/"+query+"?"+query+"=Same", nil, 200))
-				if found["id"] != float64(2) {
+				query := map[string]string{"employees": "name", "emails": "user"}[resource]
+				if found, _ := page(t, callAPI(t, router, "GET", path+"?"+query+"=Same", nil, 200)); fmt.Sprint(ids(found)) != "[2 3]" {
 					t.Fatalf("search selected inactive record: %v", found)
 				}
 			}
@@ -79,28 +74,23 @@ func TestDeactivationSeparatesActiveRecords(t *testing.T) {
 			if stored["imported_field"] != "preserved" || stored["created_at"] != bson.NewDateTimeFromTime(createdAt) {
 				t.Fatalf("lost original fields: %v", stored)
 			}
-			callAPI(t, router, "POST", "/api/"+resource+"/deactivate?id=2", nil, 200)
-			var page dto.InactivePageDto
-			if err := json.Unmarshal(callAPI(t, router, "GET", "/api/"+resource+"/inactive?limit=1", nil, 200), &page); err != nil {
-				t.Fatal(err)
+			callAPI(t, router, "DELETE", path+"/2", nil, 200)
+			inactive, paging := page(t, callAPI(t, router, "GET", path+"/inactive?page_size=1", nil, 200))
+			if len(inactive) != 1 || inactive[0]["id"] != float64(1) || !paging.HasNext || len(inactive[0]) != 2 {
+				t.Fatalf("first page: %v %+v", inactive, paging)
 			}
-			if len(page.Records) != 1 || page.Records[0].ID != 1 || page.NextAfter == nil || *page.NextAfter != 1 {
-				t.Fatalf("first page: %+v", page)
+			inactive, paging = page(t, callAPI(t, router, "GET", path+"/inactive?page_size=1&page=1", nil, 200))
+			if len(inactive) != 1 || inactive[0]["id"] != float64(2) || paging.HasNext {
+				t.Fatalf("last page: %v %+v", inactive, paging)
 			}
-			if err := json.Unmarshal(callAPI(t, router, "GET", "/api/"+resource+"/inactive?limit=1&after=1", nil, 200), &page); err != nil {
-				t.Fatal(err)
-			}
-			if len(page.Records) != 1 || page.Records[0].ID != 2 || page.NextAfter != nil {
-				t.Fatalf("last page: %+v", page)
-			}
-			for _, query := range []string{"limit=0", "limit=101", "after=-1", "limit=no"} {
-				callAPI(t, router, "GET", "/api/"+resource+"/inactive?"+query, nil, 400)
+			for _, query := range []string{"page_size=101", "page=-1", "page=no", "sort_by=name"} {
+				callAPI(t, router, "GET", path+"/inactive?"+query, nil, 400)
 			}
 		})
 	}
 	// A normal PUT cannot edit or resurrect an inactive record.
-	callAPI(t, router, "PUT", "/api/employees?id=1", map[string]any{"name": "Changed", "email": "a@example.com", "phone": "123", "branch_id": 1, "department_id": 1}, 404)
-	callAPI(t, router, "POST", "/api/emails/deactivate?id=2147483648", nil, 400)
+	callAPI(t, router, "PUT", "/api/employees/1", map[string]any{"name": "Changed", "email": "a@example.com", "phone": "123", "branch_id": 1, "department_id": 1}, 404)
+	callAPI(t, router, "DELETE", "/api/emails/2147483648", nil, 404)
 }
 
 func TestConcurrentDeactivationPreservesTimestamp(t *testing.T) {
@@ -109,12 +99,12 @@ func TestConcurrentDeactivationPreservesTimestamp(t *testing.T) {
 	if _, err := db.Collection("machines").InsertOne(ctx, bson.M{"id": 1}); err != nil {
 		t.Fatal(err)
 	}
-	repo := repository.NewDeactivationRepository(db)
+	machines := inventorydata.NewMachineDataAdapter(db)
 	stamps := make(chan time.Time, 8)
 	var group sync.WaitGroup
 	for range 8 {
 		group.Go(func() {
-			result, err := repo.Deactivate(ctx, "machines", 1)
+			result, err := machines.Deactivate(ctx, 1)
 			if err != nil {
 				t.Error(err)
 				return
@@ -153,8 +143,8 @@ func TestEmployeeDeactivationUnassignsActiveEquipment(t *testing.T) {
 		}
 	}
 	router := testRouter(t, db)
-	first := object(t, callAPI(t, router, "POST", "/api/employees/deactivate?id=5", nil, 200))
-	repeated := object(t, callAPI(t, router, "POST", "/api/employees/deactivate?id=5", nil, 200))
+	first := object(t, callAPI(t, router, "DELETE", "/api/employees/5", nil, 200))
+	repeated := object(t, callAPI(t, router, "DELETE", "/api/employees/5", nil, 200))
 	if first["deactivated_at"] != repeated["deactivated_at"] {
 		t.Fatal("retry changed employee deactivation timestamp")
 	}
@@ -168,8 +158,8 @@ func TestEmployeeDeactivationUnassignsActiveEquipment(t *testing.T) {
 				t.Fatalf("%s ID %d assignment: got %v, want %v", resource, id, record["employee_id"], want)
 			}
 			if id == 4 {
-				ids, ok := record["employee_ids"].(bson.A)
-				if !ok || len(ids) != 1 || ids[0] != int64(6) {
+				employeeIDs, ok := record["employee_ids"].(bson.A)
+				if !ok || len(employeeIDs) != 1 || employeeIDs[0] != int64(6) {
 					t.Fatalf("%s shared assignment lost: %v", resource, record["employee_ids"])
 				}
 			}
@@ -177,48 +167,27 @@ func TestEmployeeDeactivationUnassignsActiveEquipment(t *testing.T) {
 	}
 }
 
-func TestUnassignedMachineSearchUsesActiveScope(t *testing.T) {
+func TestUnassignedFilterUsesActiveScope(t *testing.T) {
 	db := testDatabase(t)
 	ctx := context.Background()
-	_, err := db.Collection("machines").InsertMany(ctx, []any{
-		bson.M{"id": 1, "employee_id": nil},
-		bson.M{"id": 2},
-		bson.M{"id": 3, "employee_id": 5},
-		bson.M{"id": 4, "employee_id": nil, "deactivated_at": time.Now().UTC()},
-		bson.M{"id": 5, "employee_id": nil, "employee_ids": bson.A{5}},
-		bson.M{"id": 6, "employee_id": nil, "employee_ids": bson.A{}},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	var machines []dto.MachineDto
-	if err := json.Unmarshal(callAPI(t, testRouter(t, db), "GET", "/api/machines/unassigned", nil, 200), &machines); err != nil {
-		t.Fatal(err)
-	}
-	if len(machines) != 3 || machines[0].ID != 1 || machines[1].ID != 2 || machines[2].ID != 6 {
-		t.Fatalf("unassigned machines: %+v", machines)
-	}
-}
-
-func TestUnassignedMonitorSearchUsesActiveScope(t *testing.T) {
-	db := testDatabase(t)
-	ctx := context.Background()
-	_, err := db.Collection("monitors").InsertMany(ctx, []any{
-		bson.M{"id": 1, "employee_id": nil},
-		bson.M{"id": 2},
-		bson.M{"id": 3, "employee_id": 5},
-		bson.M{"id": 4, "employee_id": nil, "deactivated_at": time.Now().UTC()},
-		bson.M{"id": 5, "employee_id": nil, "employee_ids": bson.A{5}},
-		bson.M{"id": 6, "employee_id": nil, "employee_ids": bson.A{}},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	var monitors []dto.MonitorDto
-	if err := json.Unmarshal(callAPI(t, testRouter(t, db), "GET", "/api/monitors/unassigned", nil, 200), &monitors); err != nil {
-		t.Fatal(err)
-	}
-	if len(monitors) != 3 || monitors[0].ID != 1 || monitors[1].ID != 2 || monitors[2].ID != 6 {
-		t.Fatalf("unassigned monitors: %+v", monitors)
+	router := testRouter(t, db)
+	for _, resource := range []string{"machines", "monitors", "phones"} {
+		_, err := db.Collection(resource).InsertMany(ctx, []any{
+			bson.M{"id": 1, "employee_id": nil},
+			bson.M{"id": 2},
+			bson.M{"id": 3, "employee_id": 5},
+			bson.M{"id": 4, "employee_id": nil, "deactivated_at": time.Now().UTC()},
+			bson.M{"id": 5, "employee_id": nil, "employee_ids": bson.A{5}},
+			bson.M{"id": 6, "employee_id": nil, "employee_ids": bson.A{}},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if unassigned, _ := page(t, callAPI(t, router, "GET", "/api/"+resource+"?unassigned=true", nil, 200)); fmt.Sprint(ids(unassigned)) != "[1 2 6]" {
+			t.Fatalf("unassigned %s: %v", resource, unassigned)
+		}
+		if assigned, _ := page(t, callAPI(t, router, "GET", "/api/"+resource+"?employee_id=5&employee_id=7", nil, 200)); fmt.Sprint(ids(assigned)) != "[3 5]" {
+			t.Fatalf("assigned %s: %v", resource, assigned)
+		}
 	}
 }

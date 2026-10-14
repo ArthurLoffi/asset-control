@@ -1,8 +1,6 @@
 package adapter
 
 import (
-	"asset-control/internal/core/audit"
-	"asset-control/internal/core/database"
 	"context"
 	"fmt"
 	"reflect"
@@ -10,6 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"asset-control/internal/core/audit"
+	"asset-control/internal/core/database"
+	coredto "asset-control/internal/core/dto"
+	"asset-control/internal/modules/audit/application/port"
 	"asset-control/internal/modules/audit/domain/dto"
 	"asset-control/internal/modules/audit/infrastructure/outbound/data/schema"
 
@@ -18,77 +20,67 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-type ChangeRepository struct {
-	db         *mongo.Database
-	collection *mongo.Collection
+type ChangeDataAdapter struct {
+	db               *mongo.Database
+	changeCollection *mongo.Collection
 }
 
-func NewChangeRepository(db *mongo.Database) *ChangeRepository {
-	return &ChangeRepository{
-		db:         db,
-		collection: db.Collection((schema.Change{}).CollectionName()),
-	}
+var _ port.ChangeDataPort = (*ChangeDataAdapter)(nil)
+var _ audit.Recorder = (*ChangeDataAdapter)(nil)
+
+func NewChangeDataAdapter(db *mongo.Database) *ChangeDataAdapter {
+	return &ChangeDataAdapter{db: db, changeCollection: db.Collection(schema.ChangeCollection)}
 }
 
-func (r *ChangeRepository) WithinTransaction(ctx context.Context, fn func(context.Context) error) error {
-	session, err := r.db.Client().StartSession()
-	if err != nil {
-		return err
-	}
-	defer session.EndSession(context.Background())
+func (a *ChangeDataAdapter) EnsureSchema(ctx context.Context) error {
+	return database.EnsureIndexes(ctx, a.db, schema.ChangeCollection,
+		mongo.IndexModel{Keys: bson.D{{Key: "time", Value: -1}, {Key: "_id", Value: -1}}})
+}
 
-	_, err = session.WithTransaction(ctx, func(txCtx context.Context) (any, error) {
-		return nil, fn(txCtx)
+func (a *ChangeDataAdapter) WithinTransaction(ctx context.Context, fn func(context.Context) error) error {
+	return database.WithinTransaction(ctx, a.db, fn)
+}
+
+func (a *ChangeDataAdapter) CreateChange(ctx context.Context, change audit.Change) error {
+	_, err := a.changeCollection.InsertOne(ctx, schema.ChangeDocument{
+		Time:       change.Time,
+		UserID:     change.UserID,
+		Resource:   change.Resource,
+		ResourceID: change.ResourceID,
+		Action:     change.Action,
+		Object: schema.ChangeObjectDocument{
+			Before: auditDocument(change.Object.Before),
+			After:  auditDocument(change.Object.After),
+		},
 	})
 	return err
 }
 
-func (r *ChangeRepository) CreateChange(ctx context.Context, input audit.Change) error {
-	document := schema.Change{
-		Time:       input.Time,
-		UserID:     input.UserID,
-		Resource:   input.Resource,
-		ResourceID: input.ResourceID,
-		Action:     input.Action,
-		Object: schema.ChangeObject{
-			Before: auditDocument(input.Object.Before),
-			After:  auditDocument(input.Object.After),
-		},
+func (a *ChangeDataAdapter) FindAll(ctx context.Context, request dto.ChangeRequestDTO) (coredto.PaginatedResponseDTO[dto.ChangeResponseDTO], error) {
+	order := 1
+	if request.Direction == coredto.DirectionDesc {
+		order = -1
 	}
-
-	_, err := r.collection.InsertOne(ctx, document)
-	return err
-}
-
-func (r *ChangeRepository) ListRecent(ctx context.Context, limit int64) ([]dto.RecentChangeDto, error) {
-	records := make([]dto.RecentChangeDto, 0)
-	cursor, err := r.collection.Find(ctx, bson.D{}, options.Find().
-		SetSort(bson.D{{Key: "time", Value: -1}, {Key: "_id", Value: -1}}).
-		SetLimit(limit).
-		SetProjection(bson.M{"time": 1, "user_id": 1, "resource": 1, "resource_id": 1, "action": 1, "object": 1}))
+	page, err := database.FindPage[schema.ChangeDocument](ctx, a.changeCollection, bson.M{},
+		bson.D{{Key: "time", Value: order}, {Key: "_id", Value: order}}, request.PaginatedRequestDTO, database.DefaultPageSize,
+		bson.M{"time": 1, "user_id": 1, "resource": 1, "resource_id": 1, "action": 1, "object": 1})
 	if err != nil {
-		return records, database.PersistenceError(err)
+		return coredto.PaginatedResponseDTO[dto.ChangeResponseDTO]{}, err
 	}
-	defer cursor.Close(ctx)
-	var changes []schema.Change
-	if err := cursor.All(ctx, &changes); err != nil {
-		return records, database.PersistenceError(err)
-	}
-	userNames, err := r.userNames(ctx, changes)
+	userNames, err := a.userNames(ctx, page.Content)
 	if err != nil {
-		return records, err
+		return coredto.PaginatedResponseDTO[dto.ChangeResponseDTO]{}, err
 	}
-	for _, change := range changes {
-		records = append(records, dto.RecentChangeDto{
+	return coredto.MapPage(page, func(change schema.ChangeDocument) dto.ChangeResponseDTO {
+		return dto.ChangeResponseDTO{
 			ID: change.ID.Hex(), Time: change.Time, UserID: change.UserID, UserName: userNames[change.UserID],
 			Resource: change.Resource, ResourceID: change.ResourceID, Action: change.Action,
 			ChangedFields: changedFields(change.Object.Before, change.Object.After),
-		})
-	}
-	return records, nil
+		}
+	}), nil
 }
 
-func (r *ChangeRepository) userNames(ctx context.Context, changes []schema.Change) (map[string]string, error) {
+func (a *ChangeDataAdapter) userNames(ctx context.Context, changes []schema.ChangeDocument) (map[string]string, error) {
 	names := make(map[string]string)
 	ids := make([]bson.ObjectID, 0, len(changes))
 	for _, change := range changes {
@@ -104,7 +96,7 @@ func (r *ChangeRepository) userNames(ctx context.Context, changes []schema.Chang
 	if len(ids) == 0 {
 		return names, nil
 	}
-	cursor, err := r.db.Collection("users").Find(ctx, bson.M{"_id": bson.M{"$in": ids}},
+	cursor, err := a.db.Collection(schema.UserCollection).Find(ctx, bson.M{"_id": bson.M{"$in": ids}},
 		options.Find().SetProjection(bson.M{"name": 1}))
 	if err != nil {
 		return nil, database.PersistenceError(err)
@@ -123,8 +115,8 @@ func (r *ChangeRepository) userNames(ctx context.Context, changes []schema.Chang
 	return names, nil
 }
 
-func changedFields(before, after bson.M) []dto.ChangedFieldDto {
-	fields := make([]dto.ChangedFieldDto, 0)
+func changedFields(before, after bson.M) []dto.ChangedFieldDTO {
+	fields := make([]dto.ChangedFieldDTO, 0)
 	keys := make([]string, 0, len(before)+len(after))
 	seen := make(map[string]bool)
 	for _, document := range []bson.M{before, after} {
@@ -147,7 +139,7 @@ func changedFields(before, after bson.M) []dto.ChangedFieldDto {
 		oldText, oldSafe := auditScalar(oldValue)
 		newText, newSafe := auditScalar(newValue)
 		if oldSafe && newSafe {
-			fields = append(fields, dto.ChangedFieldDto{Field: key, Before: oldText, After: newText})
+			fields = append(fields, dto.ChangedFieldDTO{Field: key, Before: oldText, After: newText})
 		}
 	}
 	return fields

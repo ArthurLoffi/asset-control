@@ -1,6 +1,34 @@
 basePath: /api
 definitions:
-  dto.ChangedFieldDto:
+  dto.BranchResponseDTO:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  dto.ChangeResponseDTO:
+    properties:
+      action:
+        type: string
+      changed_fields:
+        items:
+          $ref: '#/definitions/dto.ChangedFieldDTO'
+        type: array
+      id:
+        type: string
+      resource:
+        type: string
+      resource_id:
+        type: integer
+      time:
+        type: string
+      user_id:
+        type: string
+      user_name:
+        type: string
+    type: object
+  dto.ChangedFieldDTO:
     properties:
       after:
         type: string
@@ -9,7 +37,21 @@ definitions:
       field:
         type: string
     type: object
-  dto.CreateEmailDto:
+  dto.DeactivationResponseDTO:
+    properties:
+      deactivated_at:
+        type: string
+      id:
+        type: integer
+    type: object
+  dto.DepartmentResponseDTO:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  dto.EmailInputDTO:
     properties:
       email:
         example: ana@example.com
@@ -26,7 +68,28 @@ definitions:
     - password_hash
     - user
     type: object
-  dto.CreateEmployeeDto:
+  dto.EmailResponseDTO:
+    properties:
+      created_at:
+        example: "2026-01-01T00:00:00Z"
+        format: date-time
+        type: string
+      email:
+        example: ana@example.com
+        type: string
+      id:
+        example: 42
+        format: int32
+        type: integer
+      password_hash:
+        description: PasswordHash contains the plaintext password as stored in usableEmails.
+        example: example-password
+        type: string
+      user:
+        example: Ana
+        type: string
+    type: object
+  dto.EmployeeInputDTO:
     properties:
       branch_id:
         maximum: 9223372036854776000
@@ -56,7 +119,32 @@ definitions:
     - department_id
     - name
     type: object
-  dto.CreateMachineDto:
+  dto.EmployeeResponseDTO:
+    properties:
+      branch_id:
+        type: integer
+      created_at:
+        type: string
+      department_id:
+        type: integer
+      email:
+        type: string
+      emails:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+      phones:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.MachineInputDTO:
     properties:
       asset_number:
         minimum: 0
@@ -95,7 +183,38 @@ definitions:
     - type
     - user
     type: object
-  dto.CreateMonitorDto:
+  dto.MachineResponseDTO:
+    properties:
+      asset_number:
+        type: integer
+      created_at:
+        type: string
+      employee_id:
+        type: integer
+      employee_ids:
+        items:
+          type: integer
+        type: array
+      has_keyboard:
+        type: boolean
+      has_mouse:
+        type: boolean
+      id:
+        type: integer
+      machine_condition:
+        type: string
+      model:
+        type: string
+      serial_number:
+        type: string
+      situation:
+        type: string
+      type:
+        type: string
+      user:
+        type: string
+    type: object
+  dto.MonitorInputDTO:
     properties:
       asset_number:
         maximum: 9223372036854776000
@@ -127,7 +246,59 @@ definitions:
     required:
     - model
     type: object
-  dto.CreatePhoneDto:
+  dto.MonitorResponseDTO:
+    properties:
+      asset_number:
+        type: integer
+      brand:
+        type: string
+      created_at:
+        type: string
+      employee_id:
+        type: integer
+      employee_ids:
+        items:
+          type: integer
+        type: array
+      has_monitor:
+        type: boolean
+      id:
+        type: integer
+      model:
+        type: string
+      monitor_condition:
+        type: string
+      serial_number:
+        type: string
+      situation:
+        type: string
+    type: object
+  dto.PageDoc:
+    properties:
+      content:
+        items: {}
+        type: array
+      paging:
+        $ref: '#/definitions/dto.PagingDTO'
+    type: object
+  dto.PagingDTO:
+    properties:
+      has_content:
+        type: boolean
+      has_next:
+        type: boolean
+      has_previous:
+        type: boolean
+      page:
+        type: integer
+      size:
+        type: integer
+      total_elements:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  dto.PhoneInputDTO:
     properties:
       employee_id:
         maximum: 9223372036854776000
@@ -157,7 +328,32 @@ definitions:
         maxLength: 100
         type: string
     type: object
-  dto.CreatePrinterDto:
+  dto.PhoneResponseDTO:
+    properties:
+      created_at:
+        type: string
+      employee_id:
+        type: integer
+      employee_ids:
+        items:
+          type: integer
+        type: array
+      equipament:
+        type: string
+      has_chip:
+        type: boolean
+      id:
+        type: integer
+      imei:
+        type: string
+      model:
+        type: string
+      serial_number:
+        type: string
+      situation:
+        type: string
+    type: object
+  dto.PrinterInputDTO:
     properties:
       asset_number:
         maximum: 9223372036854776000
@@ -183,102 +379,23 @@ definitions:
     - ip
     - model
     type: object
-  dto.DeactivationDto:
+  dto.PrinterResponseDTO:
     properties:
-      deactivated_at:
-        type: string
-      id:
+      asset_number:
         type: integer
-    type: object
-  dto.DeactivationResponseDto:
-    properties:
-      data:
-        $ref: '#/definitions/dto.DeactivationDto'
-      status:
-        type: string
-    type: object
-  dto.EmailDto:
-    properties:
+      branch_id:
+        type: integer
       created_at:
-        example: "2026-01-01T00:00:00Z"
-        format: date-time
         type: string
-      email:
-        example: ana@example.com
-        type: string
+      departments_id:
+        type: integer
       id:
-        example: 42
-        format: int32
         type: integer
-      password_hash:
-        description: PasswordHash contains the plaintext password as stored in usableEmails.
-        example: example-password
+      ip:
         type: string
-      user:
-        example: Ana
+      machine_condition:
         type: string
-    type: object
-  dto.EmailListResponseDto:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/dto.EmailDto'
-        type: array
-      status:
-        example: emails retrieved successfully
-        type: string
-    type: object
-  dto.EmailResponseDto:
-    properties:
-      data:
-        $ref: '#/definitions/dto.EmailDto'
-      status:
-        type: string
-    type: object
-  dto.InactivePageDto:
-    properties:
-      next_after:
-        type: integer
-      records:
-        items:
-          $ref: '#/definitions/dto.DeactivationDto'
-        type: array
-    type: object
-  dto.InactivePageResponseDto:
-    properties:
-      data:
-        $ref: '#/definitions/dto.InactivePageDto'
-      status:
-        type: string
-    type: object
-  dto.RecentChangeDto:
-    properties:
-      action:
-        type: string
-      changed_fields:
-        items:
-          $ref: '#/definitions/dto.ChangedFieldDto'
-        type: array
-      id:
-        type: string
-      resource:
-        type: string
-      resource_id:
-        type: integer
-      time:
-        type: string
-      user_id:
-        type: string
-      user_name:
-        type: string
-    type: object
-  dto.RecentChangesResponseDto:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/dto.RecentChangeDto'
-        type: array
-      status:
+      model:
         type: string
     type: object
   exception.ErrorResponse:
@@ -303,256 +420,385 @@ info:
   title: Asset control API
   version: v0.3.0
 paths:
-  /changes/recent:
+  /branches:
     get:
+      parameters:
+      - description: Página, começando em 0
+        in: query
+        minimum: 0
+        name: page
+        type: integer
+      - description: Itens por página (0 = 20)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: Campo de ordenação
+        enum:
+        - id
+        - name
+        in: query
+        name: sort_by
+        type: string
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      - description: Nome (parcial, sem diferenciar maiúsculas)
+        in: query
+        name: name
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.RecentChangesResponseDto'
-        "401":
-          description: Unauthorized
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.BranchResponseDTO'
+                  type: array
+              type: object
+        "400":
+          description: CORE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Internal Server Error
+      summary: Lista filiais
+      tags:
+      - organization
+  /branches/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BranchResponseDTO'
+        "404":
+          description: BRANCH_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: List the ten most recent inventory updates
+      summary: Busca filial por ID
+      tags:
+      - organization
+  /changes:
+    get:
+      description: Resolve o nome do editor e devolve só os campos escalares alterados,
+        sem segredos nem snapshots.
+      parameters:
+      - description: Página, começando em 0
+        in: query
+        minimum: 0
+        name: page
+        type: integer
+      - description: Itens por página (0 = 20)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: DESC para as mais recentes primeiro
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.ChangeResponseDTO'
+                  type: array
+              type: object
+        "400":
+          description: CORE_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Lista alterações do inventário
       tags:
       - changes
-  /emails:
+  /departments:
     get:
-      description: Retorna todos os registros de usableEmails em ordem crescente de
-        ID, incluindo password_hash em texto puro, exatamente como armazenado. Retorna
-        data como uma lista vazia quando não houver registros.
+      parameters:
+      - description: Página, começando em 0
+        in: query
+        minimum: 0
+        name: page
+        type: integer
+      - description: Itens por página (0 = 20)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: Campo de ordenação
+        enum:
+        - id
+        - name
+        in: query
+        name: sort_by
+        type: string
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      - description: Nome (parcial, sem diferenciar maiúsculas)
+        in: query
+        name: name
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.EmailListResponseDto'
-        "500":
-          description: Erro interno do servidor
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.DepartmentResponseDTO'
+                  type: array
+              type: object
+        "400":
+          description: CORE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "504":
-          description: Tempo limite da operação no banco de dados
+      summary: Lista departamentos
+      tags:
+      - organization
+  /departments/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DepartmentResponseDTO'
+        "404":
+          description: DEPARTMENT_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Lista todos os emails
+      summary: Busca departamento por ID
+      tags:
+      - organization
+  /emails:
+    get:
+      parameters:
+      - description: Página, começando em 0
+        in: query
+        minimum: 0
+        name: page
+        type: integer
+      - description: Itens por página (0 = 20)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      - description: Campo de ordenação; o id desempata
+        in: query
+        name: sort_by
+        type: string
+      - description: Usuário (parcial, sem diferenciar maiúsculas)
+        in: query
+        name: user
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.EmailResponseDTO'
+                  type: array
+              type: object
+        "400":
+          description: CORE_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Lista emails ativos
       tags:
       - emails
     post:
       consumes:
       - application/json
-      description: Cria um registro em usableEmails com ID int32 e created_at gerados
-        pelo servidor. Os campos user, email e password_hash são obrigatórios. A senha
-        é armazenada e retornada em texto puro, sem alterações.
+      description: ID e created_at são gerados pelo servidor.
       parameters:
-      - description: Dados do email
+      - description: Dados
         in: body
-        name: email
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateEmailDto'
+          $ref: '#/definitions/dto.EmailInputDTO'
       produces:
       - application/json
       responses:
         "201":
-          description: 'Email criado; status: created'
+          description: Created
           schema:
-            $ref: '#/definitions/dto.EmailResponseDto'
+            $ref: '#/definitions/dto.EmailResponseDTO'
         "400":
-          description: Dados inválidos
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
         "409":
-          description: Conflito de registro
+          description: CORE_004
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Erro interno do servidor ou IDs esgotados
+      summary: Cria email
+      tags:
+      - emails
+  /emails/{id}:
+    delete:
+      description: Registra deactivated_at uma única vez; repetir devolve o mesmo
+        horário. Desativar um funcionário remove-o dos equipamentos ativos.
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDTO'
+        "404":
+          description: XXX_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "504":
-          description: Tempo limite da operação no banco de dados
+      summary: Desativa um registro (soft delete)
+      tags:
+      - deactivation
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EmailResponseDTO'
+        "400":
+          description: CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Cria um email
+        "404":
+          description: EMAIL_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Busca email ativo por ID
       tags:
       - emails
     put:
       consumes:
       - application/json
-      description: Substitui user, email e password_hash do registro indicado pelo
-        ID; os três campos são obrigatórios. Preserva id e created_at. A senha é armazenada
-        e retornada em texto puro, sem alterações. Não cria registros quando o ID
-        não existe.
+      description: Substitui os campos editáveis; preserva id, created_at e campos
+        desconhecidos. Registra auditoria.
       parameters:
-      - description: ID do email (inteiro positivo de 32 bits)
-        format: int32
-        in: query
-        maximum: 2147483647
-        minimum: 1
+      - description: ID
+        in: path
         name: id
         required: true
         type: integer
-      - description: Dados atualizados do email
+      - description: Dados
         in: body
-        name: email
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateEmailDto'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 'Email atualizado; status: email updated successfully'
-          schema:
-            $ref: '#/definitions/dto.EmailResponseDto'
-        "400":
-          description: ID ou dados inválidos
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Email não encontrado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "409":
-          description: Conflito de registro
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Erro interno do servidor
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "504":
-          description: Tempo limite da operação no banco de dados
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Atualiza um email
-      tags:
-      - emails
-  /emails/deactivate:
-    post:
-      parameters:
-      - description: Record ID
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
+          $ref: '#/definitions/dto.EmailInputDTO'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.DeactivationResponseDto'
+            $ref: '#/definitions/dto.EmailResponseDTO'
         "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
         "404":
-          description: Not Found
+          description: EMAIL_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Deactivate an inventory record
-      tags:
-      - deactivation
-  /emails/id:
-    get:
-      description: Retorna um email de usableEmails pelo ID. O campo password_hash
-        retorna a senha em texto puro, exatamente como armazenada.
-      parameters:
-      - description: ID do email (inteiro positivo de 32 bits)
-        format: int32
-        in: query
-        maximum: 2147483647
-        minimum: 1
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.EmailResponseDto'
-        "400":
-          description: ID inválido ou não informado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Email não encontrado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Erro interno do servidor
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "504":
-          description: Tempo limite da operação no banco de dados
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca email por ID
+      summary: Atualiza email ativo
       tags:
       - emails
   /emails/inactive:
     get:
+      description: Retorna só id e deactivated_at, ordenados por id, separado do inventário
+        ativo.
       parameters:
-      - description: Last ID from previous page (default 0)
-        format: int64
+      - description: Página, começando em 0
         in: query
-        name: after
+        minimum: 0
+        name: page
         type: integer
-      - description: Page size (1-100, default 50)
+      - description: Itens por página (0 = 20)
         in: query
-        name: limit
+        maximum: 100
+        minimum: 0
+        name: page_size
         type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.InactivePageResponseDto'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: List deactivation history separately from active inventory
-      tags:
-      - deactivation
-  /emails/user:
-    get:
-      description: Busca parcial pelo campo user, sem diferenciar maiúsculas de minúsculas;
-        caracteres especiais são tratados literalmente. Espaços nas extremidades da
-        busca são removidos. Retorna o email com menor ID quando houver múltiplos
-        resultados. O campo password_hash retorna a senha em texto puro, exatamente
-        como armazenada.
-      parameters:
-      - description: Usuário do email (não pode ser vazio)
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
         in: query
-        name: user
-        required: true
+        name: direction
         type: string
       produces:
       - application/json
@@ -560,117 +806,111 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.EmailResponseDto'
-        "400":
-          description: Usuário não informado ou vazio
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Email não encontrado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Erro interno do servidor
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "504":
-          description: Tempo limite da operação no banco de dados
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca email por usuário
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.DeactivationResponseDTO'
+                  type: array
+              type: object
+      summary: Lista o histórico de desativação
       tags:
-      - emails
+      - deactivation
   /employees:
     get:
-      description: Retorna todos os funcionários cadastrados.
+      parameters:
+      - description: Página, começando em 0
+        in: query
+        minimum: 0
+        name: page
+        type: integer
+      - description: Itens por página (0 = 20)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      - description: Campo de ordenação; o id desempata
+        in: query
+        name: sort_by
+        type: string
+      - description: Nome (parcial, sem diferenciar maiúsculas)
+        in: query
+        name: name
+        type: string
+      - description: ID da filial
+        in: query
+        name: branch_id
+        type: integer
+      - description: ID do departamento
+        in: query
+        name: department_id
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Funcionários encontrados com sucesso
+          description: OK
           schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Erro interno do servidor
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.EmployeeResponseDTO'
+                  type: array
+              type: object
+        "400":
+          description: CORE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Lista todos os funcionários
+      summary: Lista funcionários ativos
       tags:
       - employees
     post:
       consumes:
       - application/json
-      description: Cria um novo funcionário a partir dos dados enviados no corpo da
-        requisição.
+      description: ID e created_at são gerados pelo servidor.
       parameters:
-      - description: Dados do funcionário
+      - description: Dados
         in: body
-        name: employee
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateEmployeeDto'
+          $ref: '#/definitions/dto.EmployeeInputDTO'
       produces:
       - application/json
       responses:
         "201":
-          description: Funcionário criado com sucesso
+          description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.EmployeeResponseDTO'
         "400":
-          description: Dados inválidos
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Erro interno do servidor
+        "409":
+          description: CORE_004
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Cria um novo funcionário
+      summary: Cria funcionário
       tags:
       - employees
-    put:
-      consumes:
-      - application/json
-      description: Atualiza os dados de um funcionário existente através do ID.
+  /employees/{id}:
+    delete:
+      description: Registra deactivated_at uma única vez; repetir devolve o mesmo
+        horário. Desativar um funcionário remove-o dos equipamentos ativos.
       parameters:
-      - description: ID do funcionário
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
-      - description: Dados atualizados do funcionário
-        in: body
-        name: employee
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateEmployeeDto'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Funcionário atualizado com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID inválido ou dados inválidos
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Funcionário não encontrado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Atualiza um funcionário
-      tags:
-      - employees
-  /employees/deactivate:
-    post:
-      parameters:
-      - description: Record ID
-        format: int64
-        in: query
+      - description: ID
+        in: path
         name: id
         required: true
         type: integer
@@ -680,29 +920,18 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.DeactivationResponseDto'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
+            $ref: '#/definitions/dto.DeactivationResponseDTO'
         "404":
-          description: Not Found
+          description: XXX_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Deactivate an inventory record
+      summary: Desativa um registro (soft delete)
       tags:
       - deactivation
-  /employees/id:
     get:
-      description: Busca um funcionário pelo ID informado como query parameter.
       parameters:
-      - description: ID do funcionário
-        format: int64
-        in: query
+      - description: ID
+        in: path
         name: id
         required: true
         type: integer
@@ -710,174 +939,188 @@ paths:
       - application/json
       responses:
         "200":
-          description: Funcionário encontrado com sucesso
+          description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.EmployeeResponseDTO'
         "400":
-          description: ID inválido ou não informado
+          description: CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
         "404":
-          description: Funcionário não encontrado
+          description: EMPLOYEE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca funcionário por ID
+      summary: Busca funcionário ativo por ID
+      tags:
+      - employees
+    put:
+      consumes:
+      - application/json
+      description: Substitui os campos editáveis; preserva id, created_at e campos
+        desconhecidos. Registra auditoria.
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EmployeeInputDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EmployeeResponseDTO'
+        "400":
+          description: CORE_001 ou CORE_002
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+        "404":
+          description: EMPLOYEE_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Atualiza funcionário ativo
       tags:
       - employees
   /employees/inactive:
     get:
+      description: Retorna só id e deactivated_at, ordenados por id, separado do inventário
+        ativo.
       parameters:
-      - description: Last ID from previous page (default 0)
-        format: int64
+      - description: Página, começando em 0
         in: query
-        name: after
+        minimum: 0
+        name: page
         type: integer
-      - description: Page size (1-100, default 50)
+      - description: Itens por página (0 = 20)
         in: query
-        name: limit
+        maximum: 100
+        minimum: 0
+        name: page_size
         type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.InactivePageResponseDto'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: List deactivation history separately from active inventory
-      tags:
-      - deactivation
-  /employees/name:
-    get:
-      description: Busca um funcionário pelo nome informado como query parameter.
-      parameters:
-      - description: Nome do funcionário
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
         in: query
-        name: name
-        required: true
+        name: direction
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Funcionário encontrado com sucesso
+          description: OK
           schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Nome não informado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Funcionário não encontrado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca funcionário por nome
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.DeactivationResponseDTO'
+                  type: array
+              type: object
+      summary: Lista o histórico de desativação
       tags:
-      - employees
+      - deactivation
   /machines:
     get:
-      description: Retorna todas as máquinas cadastradas.
+      parameters:
+      - description: Página, começando em 0
+        in: query
+        minimum: 0
+        name: page
+        type: integer
+      - description: Itens por página (0 = 20)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      - description: Campo de ordenação; o id desempata
+        in: query
+        name: sort_by
+        type: string
+      - collectionFormat: csv
+        description: IDs de funcionários (repetir o parâmetro; qualquer um)
+        in: query
+        items:
+          type: integer
+        name: employee_id
+        type: array
+      - description: Somente sem funcionário
+        in: query
+        name: unassigned
+        type: boolean
       produces:
       - application/json
       responses:
         "200":
-          description: Máquinas encontradas com sucesso
+          description: OK
           schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Erro interno do servidor
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.MachineResponseDTO'
+                  type: array
+              type: object
+        "400":
+          description: CORE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Lista todas as máquinas
+      summary: Lista máquinas ativos
       tags:
       - machines
     post:
       consumes:
       - application/json
-      description: Cria uma nova máquina a partir dos dados enviados no corpo da requisição.
+      description: ID e created_at são gerados pelo servidor.
       parameters:
-      - description: Dados da máquina
+      - description: Dados
         in: body
-        name: machine
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateMachineDto'
+          $ref: '#/definitions/dto.MachineInputDTO'
       produces:
       - application/json
       responses:
         "201":
-          description: Máquina criada com sucesso
+          description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.MachineResponseDTO'
         "400":
-          description: Dados inválidos
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Erro interno do servidor
+        "409":
+          description: CORE_004
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Cria uma nova máquina
+      summary: Cria máquina
       tags:
       - machines
-    put:
-      consumes:
-      - application/json
-      description: Atualiza os dados de uma máquina existente através do ID informado
-        como query parameter.
+  /machines/{id}:
+    delete:
+      description: Registra deactivated_at uma única vez; repetir devolve o mesmo
+        horário. Desativar um funcionário remove-o dos equipamentos ativos.
       parameters:
-      - description: ID da máquina
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
-      - description: Dados atualizados da máquina
-        in: body
-        name: machine
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateMachineDto'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Máquina atualizada com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID ou dados inválidos
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Máquina não encontrada
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Atualiza uma máquina
-      tags:
-      - machines
-  /machines/deactivate:
-    post:
-      parameters:
-      - description: Record ID
-        format: int64
-        in: query
+      - description: ID
+        in: path
         name: id
         required: true
         type: integer
@@ -887,58 +1130,18 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.DeactivationResponseDto'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
+            $ref: '#/definitions/dto.DeactivationResponseDTO'
         "404":
-          description: Not Found
+          description: XXX_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Deactivate an inventory record
+      summary: Desativa um registro (soft delete)
       tags:
       - deactivation
-  /machines/employee_id:
     get:
-      description: Retorna as máquinas vinculadas ao funcionário informado pelo ID.
       parameters:
-      - description: ID do funcionário
-        format: int64
-        in: query
-        name: employee_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Máquinas encontradas com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID do funcionário inválido ou não informado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Nenhuma máquina encontrada para o funcionário
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca máquinas por funcionário
-      tags:
-      - machines
-  /machines/id:
-    get:
-      description: Busca uma máquina pelo ID informado como query parameter.
-      parameters:
-      - description: ID da máquina
-        format: int64
-        in: query
+      - description: ID
+        in: path
         name: id
         required: true
         type: integer
@@ -946,473 +1149,547 @@ paths:
       - application/json
       responses:
         "200":
-          description: Máquina encontrada com sucesso
+          description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.MachineResponseDTO'
         "400":
-          description: ID inválido ou não informado
+          description: CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
         "404":
-          description: Máquina não encontrada
+          description: MACHINE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca máquina por ID
+      summary: Busca máquina ativo por ID
+      tags:
+      - machines
+    put:
+      consumes:
+      - application/json
+      description: Substitui os campos editáveis; preserva id, created_at e campos
+        desconhecidos. Registra auditoria.
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MachineInputDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MachineResponseDTO'
+        "400":
+          description: CORE_001 ou CORE_002
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+        "404":
+          description: MACHINE_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Atualiza máquina ativo
       tags:
       - machines
   /machines/inactive:
     get:
+      description: Retorna só id e deactivated_at, ordenados por id, separado do inventário
+        ativo.
       parameters:
-      - description: Last ID from previous page (default 0)
-        format: int64
+      - description: Página, começando em 0
         in: query
-        name: after
+        minimum: 0
+        name: page
         type: integer
-      - description: Page size (1-100, default 50)
+      - description: Itens por página (0 = 20)
         in: query
-        name: limit
+        maximum: 100
+        minimum: 0
+        name: page_size
         type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.InactivePageResponseDto'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: List deactivation history separately from active inventory
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.DeactivationResponseDTO'
+                  type: array
+              type: object
+      summary: Lista o histórico de desativação
       tags:
       - deactivation
-  /machines/unassigned:
+  /monitors:
     get:
+      parameters:
+      - description: Página, começando em 0
+        in: query
+        minimum: 0
+        name: page
+        type: integer
+      - description: Itens por página (0 = 20)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      - description: Campo de ordenação; o id desempata
+        in: query
+        name: sort_by
+        type: string
+      - collectionFormat: csv
+        description: IDs de funcionários (repetir o parâmetro; qualquer um)
+        in: query
+        items:
+          type: integer
+        name: employee_id
+        type: array
+      - description: Somente sem funcionário
+        in: query
+        name: unassigned
+        type: boolean
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
-      summary: List active machines without an assigned employee
-      tags:
-      - machines
-  /monitors:
-    get:
-      description: Retorna todos os monitores cadastrados.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Monitores encontrados com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Erro interno do servidor
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.MonitorResponseDTO'
+                  type: array
+              type: object
+        "400":
+          description: CORE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Lista todos os monitores
+      summary: Lista monitores ativos
       tags:
       - monitors
     post:
       consumes:
       - application/json
-      description: Cria um novo monitor a partir dos dados enviados no corpo da requisição.
+      description: ID e created_at são gerados pelo servidor.
       parameters:
-      - description: Dados do monitor
+      - description: Dados
         in: body
-        name: monitor
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateMonitorDto'
+          $ref: '#/definitions/dto.MonitorInputDTO'
       produces:
       - application/json
       responses:
         "201":
-          description: Monitor criado com sucesso
+          description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.MonitorResponseDTO'
         "400":
-          description: Dados inválidos
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Erro interno do servidor
+        "409":
+          description: CORE_004
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Cria um novo monitor
+      summary: Cria monitor
+      tags:
+      - monitors
+  /monitors/{id}:
+    delete:
+      description: Registra deactivated_at uma única vez; repetir devolve o mesmo
+        horário. Desativar um funcionário remove-o dos equipamentos ativos.
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDTO'
+        "404":
+          description: XXX_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Desativa um registro (soft delete)
+      tags:
+      - deactivation
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MonitorResponseDTO'
+        "400":
+          description: CORE_002
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+        "404":
+          description: MONITOR_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Busca monitor ativo por ID
       tags:
       - monitors
     put:
       consumes:
       - application/json
-      description: Atualiza os dados de um monitor existente através do ID.
+      description: Substitui os campos editáveis; preserva id, created_at e campos
+        desconhecidos. Registra auditoria.
       parameters:
-      - description: ID do monitor
-        format: int64
-        in: query
+      - description: ID
+        in: path
         name: id
         required: true
         type: integer
-      - description: Dados atualizados do monitor
+      - description: Dados
         in: body
-        name: monitor
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateMonitorDto'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Monitor atualizado com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID inválido ou dados inválidos
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Monitor não encontrado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Atualiza um monitor
-      tags:
-      - monitors
-  /monitors/deactivate:
-    post:
-      parameters:
-      - description: Record ID
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
+          $ref: '#/definitions/dto.MonitorInputDTO'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.DeactivationResponseDto'
+            $ref: '#/definitions/dto.MonitorResponseDTO'
         "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
         "404":
-          description: Not Found
+          description: MONITOR_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Deactivate an inventory record
-      tags:
-      - deactivation
-  /monitors/employee_id:
-    get:
-      description: Retorna todos os monitores associados ao ID de um funcionário.
-      parameters:
-      - description: ID do funcionário
-        format: int64
-        in: query
-        name: employee_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Monitores encontrados com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID do funcionário inválido ou não informado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Nenhum monitor encontrado para o funcionário
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca monitores por funcionário
-      tags:
-      - monitors
-  /monitors/id:
-    get:
-      description: Busca um monitor pelo ID informado como query parameter.
-      parameters:
-      - description: ID do monitor
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Monitor encontrado com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID inválido ou não informado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Monitor não encontrado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca monitor por ID
+      summary: Atualiza monitor ativo
       tags:
       - monitors
   /monitors/inactive:
     get:
+      description: Retorna só id e deactivated_at, ordenados por id, separado do inventário
+        ativo.
       parameters:
-      - description: Last ID from previous page (default 0)
-        format: int64
+      - description: Página, começando em 0
         in: query
-        name: after
+        minimum: 0
+        name: page
         type: integer
-      - description: Page size (1-100, default 50)
+      - description: Itens por página (0 = 20)
         in: query
-        name: limit
+        maximum: 100
+        minimum: 0
+        name: page_size
         type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.InactivePageResponseDto'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: List deactivation history separately from active inventory
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.DeactivationResponseDTO'
+                  type: array
+              type: object
+      summary: Lista o histórico de desativação
       tags:
       - deactivation
-  /monitors/unassigned:
+  /phones:
     get:
+      parameters:
+      - description: Página, começando em 0
+        in: query
+        minimum: 0
+        name: page
+        type: integer
+      - description: Itens por página (0 = 20)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      - description: Campo de ordenação; o id desempata
+        in: query
+        name: sort_by
+        type: string
+      - collectionFormat: csv
+        description: IDs de funcionários (repetir o parâmetro; qualquer um)
+        in: query
+        items:
+          type: integer
+        name: employee_id
+        type: array
+      - description: Somente sem funcionário
+        in: query
+        name: unassigned
+        type: boolean
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
-      summary: List active monitors without an assigned employee
-      tags:
-      - monitors
-  /phones:
-    get:
-      description: Retorna todos os telefones cadastrados.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Telefones encontrados com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Erro interno do servidor
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.PhoneResponseDTO'
+                  type: array
+              type: object
+        "400":
+          description: CORE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Lista todos os telefones
+      summary: Lista celulares ativos
       tags:
       - phones
     post:
       consumes:
       - application/json
-      description: Cria um novo telefone a partir dos dados enviados no corpo da requisição.
+      description: ID e created_at são gerados pelo servidor.
       parameters:
-      - description: Dados do telefone
+      - description: Dados
         in: body
-        name: phone
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreatePhoneDto'
+          $ref: '#/definitions/dto.PhoneInputDTO'
       produces:
       - application/json
       responses:
         "201":
-          description: Telefone criado com sucesso
+          description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.PhoneResponseDTO'
         "400":
-          description: Dados inválidos
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Erro interno do servidor
+        "409":
+          description: CORE_004
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Cria um novo telefone
+      summary: Cria celular
+      tags:
+      - phones
+  /phones/{id}:
+    delete:
+      description: Registra deactivated_at uma única vez; repetir devolve o mesmo
+        horário. Desativar um funcionário remove-o dos equipamentos ativos.
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDTO'
+        "404":
+          description: XXX_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Desativa um registro (soft delete)
+      tags:
+      - deactivation
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PhoneResponseDTO'
+        "400":
+          description: CORE_002
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+        "404":
+          description: PHONE_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Busca celular ativo por ID
       tags:
       - phones
     put:
       consumes:
       - application/json
-      description: Atualiza os dados de um telefone existente através do ID informado
-        como query parameter.
+      description: Substitui os campos editáveis; preserva id, created_at e campos
+        desconhecidos. Registra auditoria.
       parameters:
-      - description: ID do telefone
-        format: int64
-        in: query
+      - description: ID
+        in: path
         name: id
         required: true
         type: integer
-      - description: Dados atualizados do telefone
+      - description: Dados
         in: body
-        name: phone
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreatePhoneDto'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Telefone atualizado com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID ou dados inválidos
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Telefone não encontrado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Atualiza um telefone
-      tags:
-      - phones
-  /phones/deactivate:
-    post:
-      parameters:
-      - description: Record ID
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
+          $ref: '#/definitions/dto.PhoneInputDTO'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.DeactivationResponseDto'
+            $ref: '#/definitions/dto.PhoneResponseDTO'
         "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
         "404":
-          description: Not Found
+          description: PHONE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Deactivate an inventory record
-      tags:
-      - deactivation
-  /phones/employee_id:
-    get:
-      description: Retorna os telefones vinculados ao funcionário informado pelo ID.
-      parameters:
-      - description: ID do funcionário
-        format: int64
-        in: query
-        name: employee_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Telefones encontrados com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID do funcionário inválido ou não informado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Nenhum telefone encontrado para o funcionário
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca telefones por funcionário
-      tags:
-      - phones
-  /phones/id:
-    get:
-      description: Busca um telefone pelo ID informado como query parameter.
-      parameters:
-      - description: ID do telefone
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Telefone encontrado com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID inválido ou não informado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Telefone não encontrado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca telefone por ID
+      summary: Atualiza celular ativo
       tags:
       - phones
   /phones/inactive:
     get:
+      description: Retorna só id e deactivated_at, ordenados por id, separado do inventário
+        ativo.
       parameters:
-      - description: Last ID from previous page (default 0)
-        format: int64
+      - description: Página, começando em 0
         in: query
-        name: after
+        minimum: 0
+        name: page
         type: integer
-      - description: Page size (1-100, default 50)
+      - description: Itens por página (0 = 20)
         in: query
-        name: limit
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.DeactivationResponseDTO'
+                  type: array
+              type: object
+      summary: Lista o histórico de desativação
+      tags:
+      - deactivation
+  /printers:
+    get:
+      parameters:
+      - description: Página, começando em 0
+        in: query
+        minimum: 0
+        name: page
+        type: integer
+      - description: Itens por página (0 = 20)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: page_size
+        type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
+      - description: Campo de ordenação; o id desempata
+        in: query
+        name: sort_by
+        type: string
+      - description: ID da filial
+        in: query
+        name: branch_id
+        type: integer
+      - description: ID do departamento
+        in: query
+        name: departments_id
         type: integer
       produces:
       - application/json
@@ -1420,285 +1697,172 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.InactivePageResponseDto'
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.PrinterResponseDTO'
+                  type: array
+              type: object
         "400":
-          description: Bad Request
+          description: CORE_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: List deactivation history separately from active inventory
-      tags:
-      - deactivation
-  /printers:
-    get:
-      description: Retorna todas as impressoras cadastradas.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Impressoras encontradas com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Erro interno do servidor
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Lista todas as impressoras
+      summary: Lista impressoras ativos
       tags:
       - printers
     post:
       consumes:
       - application/json
-      description: Cria uma nova impressora a partir dos dados enviados no corpo da
-        requisição.
+      description: ID e created_at são gerados pelo servidor.
       parameters:
-      - description: Dados da impressora
+      - description: Dados
         in: body
-        name: printer
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreatePrinterDto'
+          $ref: '#/definitions/dto.PrinterInputDTO'
       produces:
       - application/json
       responses:
         "201":
-          description: Impressora criada com sucesso
+          description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.PrinterResponseDTO'
         "400":
-          description: Dados inválidos
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-        "500":
-          description: Erro interno do servidor
+        "409":
+          description: CORE_004
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Cria uma nova impressora
+      summary: Cria impressora
+      tags:
+      - printers
+  /printers/{id}:
+    delete:
+      description: Registra deactivated_at uma única vez; repetir devolve o mesmo
+        horário. Desativar um funcionário remove-o dos equipamentos ativos.
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeactivationResponseDTO'
+        "404":
+          description: XXX_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Desativa um registro (soft delete)
+      tags:
+      - deactivation
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PrinterResponseDTO'
+        "400":
+          description: CORE_002
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+        "404":
+          description: PRINTER_001
+          schema:
+            $ref: '#/definitions/exception.ErrorResponse'
+      summary: Busca impressora ativo por ID
       tags:
       - printers
     put:
       consumes:
       - application/json
-      description: Atualiza os dados de uma impressora existente através do ID.
+      description: Substitui os campos editáveis; preserva id, created_at e campos
+        desconhecidos. Registra auditoria.
       parameters:
-      - description: ID da impressora
-        format: int64
-        in: query
+      - description: ID
+        in: path
         name: id
         required: true
         type: integer
-      - description: Dados atualizados da impressora
+      - description: Dados
         in: body
-        name: printer
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreatePrinterDto'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Impressora atualizada com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID inválido ou dados inválidos
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Impressora não encontrada
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Atualiza uma impressora
-      tags:
-      - printers
-  /printers/deactivate:
-    post:
-      parameters:
-      - description: Record ID
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
+          $ref: '#/definitions/dto.PrinterInputDTO'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.DeactivationResponseDto'
+            $ref: '#/definitions/dto.PrinterResponseDTO'
         "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
+          description: CORE_001 ou CORE_002
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
         "404":
-          description: Not Found
+          description: PRINTER_001
           schema:
             $ref: '#/definitions/exception.ErrorResponse'
-      summary: Deactivate an inventory record
-      tags:
-      - deactivation
-  /printers/id:
-    get:
-      description: Busca uma impressora pelo ID informado como query parameter.
-      parameters:
-      - description: ID da impressora
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Impressora encontrada com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: ID inválido ou não informado
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Impressora não encontrada
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Busca impressora por ID
+      summary: Atualiza impressora ativo
       tags:
       - printers
   /printers/inactive:
     get:
+      description: Retorna só id e deactivated_at, ordenados por id, separado do inventário
+        ativo.
       parameters:
-      - description: Last ID from previous page (default 0)
-        format: int64
+      - description: Página, começando em 0
         in: query
-        name: after
+        minimum: 0
+        name: page
         type: integer
-      - description: Page size (1-100, default 50)
+      - description: Itens por página (0 = 20)
         in: query
-        name: limit
+        maximum: 100
+        minimum: 0
+        name: page_size
         type: integer
+      - description: Direção da ordenação
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: direction
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.InactivePageResponseDto'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: List deactivation history separately from active inventory
+            allOf:
+            - $ref: '#/definitions/dto.PageDoc'
+            - properties:
+                content:
+                  items:
+                    $ref: '#/definitions/dto.DeactivationResponseDTO'
+                  type: array
+              type: object
+      summary: Lista o histórico de desativação
       tags:
       - deactivation
-  /utils/branch:
-    get:
-      description: Retorna o nome dela de acordo com o ID passado.
-      parameters:
-      - description: ID da branch
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Branch encontrada com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Branch não encontrada
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Mostra o nome da branch
-      tags:
-      - branches
-  /utils/branches:
-    get:
-      description: Retorna todas as filiais criadas no banco de dados.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Filias encontrados com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Erro interno do servidor
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Lista todas as filiais criadas
-      tags:
-      - branches
-  /utils/department:
-    get:
-      description: Retorna o nome dele de acordo com o ID passado.
-      parameters:
-      - description: ID do department
-        format: int64
-        in: query
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Department encontrada com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Department não encontrada
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Mostra o nome do departamento
-      tags:
-      - departments
-  /utils/departments:
-    get:
-      description: Retorna todos os setores criados no banco de dados.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Setores encontrados com sucesso
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Erro interno do servidor
-          schema:
-            $ref: '#/definitions/exception.ErrorResponse'
-      summary: Lista todos os setores criados
-      tags:
-      - departments
 swagger: "2.0"
