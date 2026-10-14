@@ -281,6 +281,16 @@ definitions:
       status:
         type: string
     type: object
+  exception.ErrorResponse:
+    properties:
+      code:
+        type: string
+      logs:
+        additionalProperties: {}
+        type: object
+      message:
+        type: string
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -305,15 +315,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: List the ten most recent inventory updates
       tags:
       - changes
@@ -332,15 +338,11 @@ paths:
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "504":
           description: Tempo limite da operação no banco de dados
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Lista todos os emails
       tags:
       - emails
@@ -367,27 +369,19 @@ paths:
         "400":
           description: Dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "409":
           description: Conflito de registro
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Erro interno do servidor ou IDs esgotados
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "504":
           description: Tempo limite da operação no banco de dados
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Cria um email
       tags:
       - emails
@@ -423,33 +417,23 @@ paths:
         "400":
           description: ID ou dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Email não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "409":
           description: Conflito de registro
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "504":
           description: Tempo limite da operação no banco de dados
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Atualiza um email
       tags:
       - emails
@@ -472,21 +456,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Deactivate an inventory record
       tags:
       - deactivation
@@ -513,27 +491,19 @@ paths:
         "400":
           description: ID inválido ou não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Email não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "504":
           description: Tempo limite da operação no banco de dados
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca email por ID
       tags:
       - emails
@@ -559,21 +529,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: List deactivation history separately from active inventory
       tags:
       - deactivation
@@ -600,27 +564,19 @@ paths:
         "400":
           description: Usuário não informado ou vazio
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Email não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "504":
           description: Tempo limite da operação no banco de dados
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca email por usuário
       tags:
       - emails
@@ -638,9 +594,7 @@ paths:
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Lista todos os funcionários
       tags:
       - employees
@@ -667,15 +621,11 @@ paths:
         "400":
           description: Dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Cria um novo funcionário
       tags:
       - employees
@@ -707,15 +657,11 @@ paths:
         "400":
           description: ID inválido ou dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Funcionário não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Atualiza um funcionário
       tags:
       - employees
@@ -738,21 +684,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Deactivate an inventory record
       tags:
       - deactivation
@@ -777,15 +717,11 @@ paths:
         "400":
           description: ID inválido ou não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Funcionário não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca funcionário por ID
       tags:
       - employees
@@ -811,21 +747,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: List deactivation history separately from active inventory
       tags:
       - deactivation
@@ -849,15 +779,11 @@ paths:
         "400":
           description: Nome não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Funcionário não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca funcionário por nome
       tags:
       - employees
@@ -875,9 +801,7 @@ paths:
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Lista todas as máquinas
       tags:
       - machines
@@ -903,15 +827,11 @@ paths:
         "400":
           description: Dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Cria uma nova máquina
       tags:
       - machines
@@ -944,15 +864,11 @@ paths:
         "400":
           description: ID ou dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Máquina não encontrada
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Atualiza uma máquina
       tags:
       - machines
@@ -975,21 +891,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Deactivate an inventory record
       tags:
       - deactivation
@@ -1014,15 +924,11 @@ paths:
         "400":
           description: ID do funcionário inválido ou não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Nenhuma máquina encontrada para o funcionário
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca máquinas por funcionário
       tags:
       - machines
@@ -1047,15 +953,11 @@ paths:
         "400":
           description: ID inválido ou não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Máquina não encontrada
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca máquina por ID
       tags:
       - machines
@@ -1081,21 +983,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: List deactivation history separately from active inventory
       tags:
       - deactivation
@@ -1126,9 +1022,7 @@ paths:
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Lista todos os monitores
       tags:
       - monitors
@@ -1154,15 +1048,11 @@ paths:
         "400":
           description: Dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Cria um novo monitor
       tags:
       - monitors
@@ -1194,15 +1084,11 @@ paths:
         "400":
           description: ID inválido ou dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Monitor não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Atualiza um monitor
       tags:
       - monitors
@@ -1225,21 +1111,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Deactivate an inventory record
       tags:
       - deactivation
@@ -1264,15 +1144,11 @@ paths:
         "400":
           description: ID do funcionário inválido ou não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Nenhum monitor encontrado para o funcionário
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca monitores por funcionário
       tags:
       - monitors
@@ -1297,15 +1173,11 @@ paths:
         "400":
           description: ID inválido ou não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Monitor não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca monitor por ID
       tags:
       - monitors
@@ -1331,21 +1203,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: List deactivation history separately from active inventory
       tags:
       - deactivation
@@ -1376,9 +1242,7 @@ paths:
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Lista todos os telefones
       tags:
       - phones
@@ -1404,15 +1268,11 @@ paths:
         "400":
           description: Dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Cria um novo telefone
       tags:
       - phones
@@ -1445,15 +1305,11 @@ paths:
         "400":
           description: ID ou dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Telefone não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Atualiza um telefone
       tags:
       - phones
@@ -1476,21 +1332,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Deactivate an inventory record
       tags:
       - deactivation
@@ -1515,15 +1365,11 @@ paths:
         "400":
           description: ID do funcionário inválido ou não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Nenhum telefone encontrado para o funcionário
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca telefones por funcionário
       tags:
       - phones
@@ -1548,15 +1394,11 @@ paths:
         "400":
           description: ID inválido ou não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Telefone não encontrado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca telefone por ID
       tags:
       - phones
@@ -1582,21 +1424,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: List deactivation history separately from active inventory
       tags:
       - deactivation
@@ -1614,9 +1450,7 @@ paths:
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Lista todas as impressoras
       tags:
       - printers
@@ -1643,15 +1477,11 @@ paths:
         "400":
           description: Dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Cria uma nova impressora
       tags:
       - printers
@@ -1683,15 +1513,11 @@ paths:
         "400":
           description: ID inválido ou dados inválidos
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Impressora não encontrada
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Atualiza uma impressora
       tags:
       - printers
@@ -1714,21 +1540,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Deactivate an inventory record
       tags:
       - deactivation
@@ -1753,15 +1573,11 @@ paths:
         "400":
           description: ID inválido ou não informado
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Impressora não encontrada
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Busca impressora por ID
       tags:
       - printers
@@ -1787,21 +1603,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: List deactivation history separately from active inventory
       tags:
       - deactivation
@@ -1826,9 +1636,7 @@ paths:
         "404":
           description: Branch não encontrada
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Mostra o nome da branch
       tags:
       - branches
@@ -1846,9 +1654,7 @@ paths:
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Lista todas as filiais criadas
       tags:
       - branches
@@ -1873,9 +1679,7 @@ paths:
         "404":
           description: Department não encontrada
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Mostra o nome do departamento
       tags:
       - departments
@@ -1893,9 +1697,7 @@ paths:
         "500":
           description: Erro interno do servidor
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/exception.ErrorResponse'
       summary: Lista todos os setores criados
       tags:
       - departments

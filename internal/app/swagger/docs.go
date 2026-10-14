@@ -37,19 +37,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -75,19 +69,13 @@ const docTemplate = `{
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "504": {
                         "description": "Tempo limite da operação no banco de dados",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -135,46 +123,31 @@ const docTemplate = `{
                     "400": {
                         "description": "ID ou dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Email não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflito de registro",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "504": {
                         "description": "Tempo limite da operação no banco de dados",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -212,37 +185,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflito de registro",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno do servidor ou IDs esgotados",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "504": {
                         "description": "Tempo limite da operação no banco de dados",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -277,28 +238,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -336,37 +288,25 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido ou não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Email não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "504": {
                         "description": "Tempo limite da operação no banco de dados",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -406,28 +346,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -462,37 +393,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Usuário não informado ou vazio",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Email não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "504": {
                         "description": "Tempo limite da operação no banco de dados",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -519,10 +438,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -569,19 +485,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido ou dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Funcionário não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -620,19 +530,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -667,28 +571,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -725,19 +620,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido ou não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Funcionário não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -777,28 +666,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -834,19 +714,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Nome não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Funcionário não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -873,10 +747,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -923,19 +794,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID ou dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Máquina não encontrada",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -974,19 +839,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1021,28 +880,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1079,19 +929,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID do funcionário inválido ou não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Nenhuma máquina encontrada para o funcionário",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1128,19 +972,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido ou não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Máquina não encontrada",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1180,28 +1018,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1248,10 +1077,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1298,19 +1124,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido ou dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Monitor não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1349,19 +1169,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1396,28 +1210,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1454,19 +1259,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID do funcionário inválido ou não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Nenhum monitor encontrado para o funcionário",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1503,19 +1302,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido ou não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Monitor não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1555,28 +1348,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1623,10 +1407,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1673,19 +1454,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID ou dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Telefone não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1724,19 +1499,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1771,28 +1540,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1829,19 +1589,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID do funcionário inválido ou não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Nenhum telefone encontrado para o funcionário",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1878,19 +1632,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido ou não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Telefone não encontrado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1930,28 +1678,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -1978,10 +1717,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2028,19 +1764,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido ou dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Impressora não encontrada",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2079,19 +1809,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Dados inválidos",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2126,28 +1850,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2184,19 +1899,13 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido ou não informado",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Impressora não encontrada",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2236,28 +1945,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2294,10 +1994,7 @@ const docTemplate = `{
                     "404": {
                         "description": "Branch não encontrada",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2324,10 +2021,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2364,10 +2058,7 @@ const docTemplate = `{
                     "404": {
                         "description": "Department não encontrada",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2394,10 +2085,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Erro interno do servidor",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/exception.ErrorResponse"
                         }
                     }
                 }
@@ -2802,6 +2490,21 @@ const docTemplate = `{
                     }
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "exception.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "logs": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "message": {
                     "type": "string"
                 }
             }

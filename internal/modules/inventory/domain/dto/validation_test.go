@@ -5,7 +5,7 @@ import (
 	"math"
 	"testing"
 
-	exception "asset-control/internal/core/exception"
+	"asset-control/internal/core/exception"
 )
 
 func ptr[T any](v T) *T { return &v }
@@ -41,7 +41,7 @@ func TestValidation(t *testing.T) {
 			if tt.valid && err != nil {
 				t.Fatal(err)
 			}
-			if !tt.valid && !errors.Is(err, exception.ErrValidation) {
+			if !tt.valid && !errors.As(err, new(*exception.ValidationError)) {
 				t.Fatalf("expected validation error, got %v", err)
 			}
 		})

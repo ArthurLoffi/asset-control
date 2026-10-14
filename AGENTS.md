@@ -70,6 +70,8 @@ changes:
   deactivation, inactive history, unassigned lists.
 - [docs/audit-history.md](docs/audit-history.md): audit records and the recent
   changes feed.
+- [docs/errors.md](docs/errors.md): the `{message, code, logs}` envelope and
+  error codes. Report every handler failure through `httpx.WriteError`.
 
 ## Changes and commits
 

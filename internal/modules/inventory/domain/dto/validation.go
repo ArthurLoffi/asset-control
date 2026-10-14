@@ -4,23 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	exception "asset-control/internal/core/exception"
-
-	"github.com/go-playground/validator/v10"
+	"asset-control/internal/core/exception"
+	"asset-control/internal/core/validation"
 )
 
-var inputValidator = func() *validator.Validate {
-	v := validator.New()
-	v.SetTagName("binding")
-	return v
-}()
-
-func validateInput(input any) error {
-	if err := inputValidator.Struct(input); err != nil {
-		return fmt.Errorf("%w: %v", exception.ErrValidation, err)
-	}
-	return nil
-}
+func validateInput(input any) error { return validation.Struct(input) }
 
 func validateChoice(field, value string, choices ...string) error {
 	for _, choice := range choices {
@@ -28,7 +16,7 @@ func validateChoice(field, value string, choices ...string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("%w: invalid %s", exception.ErrValidation, field)
+	return exception.NewValidationError(fmt.Sprintf("invalid %s", field))
 }
 
 func validateCondition(field string, value *string) error {
@@ -59,7 +47,7 @@ func (input *CreateEmployeeDto) Validate() error {
 		}
 	}
 	if len(input.Emails) == 0 {
-		return fmt.Errorf("%w: at least one email is required", exception.ErrValidation)
+		return exception.NewValidationError("at least one email is required")
 	}
 	for index := range input.Emails {
 		input.Emails[index] = strings.TrimSpace(input.Emails[index])
@@ -86,7 +74,7 @@ func uniqueStrings(field string, values []string) error {
 	for _, value := range values {
 		key := strings.ToLower(value)
 		if value == "" || seen[key] {
-			return fmt.Errorf("%w: %s must contain distinct nonempty values", exception.ErrValidation, field)
+			return exception.NewValidationError(fmt.Sprintf("%s must contain distinct nonempty values", field))
 		}
 		seen[key] = true
 	}
@@ -103,7 +91,7 @@ func normalizeEmployeeIDs(single **uint64, many *[]uint64) error {
 	seen := make(map[uint64]bool, len(*many))
 	for _, id := range *many {
 		if seen[id] {
-			return fmt.Errorf("%w: employee_ids must be distinct", exception.ErrValidation)
+			return exception.NewValidationError("employee_ids must be distinct")
 		}
 		seen[id] = true
 	}
@@ -156,7 +144,7 @@ func (input *CreatePhoneDto) Validate() error {
 	input.SerialNumber = strings.TrimSpace(input.SerialNumber)
 	requiresIdentification := input.Equipament == nil || (*input.Equipament != "Só chip" && *input.Equipament != "Sem chip")
 	if requiresIdentification && (input.Model == "" || input.IMEI == "" || input.SerialNumber == "") {
-		return fmt.Errorf("%w: model, imei and serial_number are required for mobile phone records", exception.ErrValidation)
+		return exception.NewValidationError("model, imei and serial_number are required for mobile phone records")
 	}
 	if err := validateInput(input); err != nil {
 		return err

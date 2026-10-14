@@ -28,17 +28,15 @@ func NewMonitorController(monitorUseCase *usecase.MonitorUseCase) *MonitorContro
 // @Produce      json
 // @Param        monitor  body      dto.CreateMonitorDto  true  "Dados do monitor"
 // @Success      201       {object}  map[string]interface{}  "Monitor criado com sucesso"
-// @Failure      400       {object}  map[string]string  "Dados inválidos"
-// @Failure      500       {object}  map[string]string  "Erro interno do servidor"
+// @Failure      400       {object}  exception.ErrorResponse  "Dados inválidos"
+// @Failure      500       {object}  exception.ErrorResponse  "Erro interno do servidor"
 // @Router       /monitors [post]
 func (ctl *MonitorController) CreateMonitorController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var monitor dto.CreateMonitorDto
 
-		if err := c.ShouldBindJSON(&monitor); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+		if err := httpx.BindJSON(c, &monitor); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -64,34 +62,21 @@ func (ctl *MonitorController) CreateMonitorController() gin.HandlerFunc {
 // @Param        id       query     uint64                 true  "ID do monitor"
 // @Param        monitor  body      dto.CreateMonitorDto   true  "Dados atualizados do monitor"
 // @Success      200      {object}  map[string]interface{}  "Monitor atualizado com sucesso"
-// @Failure      400      {object}  map[string]string  "ID inválido ou dados inválidos"
-// @Failure      404      {object}  map[string]string  "Monitor não encontrado"
+// @Failure      400      {object}  exception.ErrorResponse  "ID inválido ou dados inválidos"
+// @Failure      404      {object}  exception.ErrorResponse  "Monitor não encontrado"
 // @Router       /monitors [put]
 func (ctl *MonitorController) UpdateMonitorController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "query param 'id' is required",
-			})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "invalid 'id' value",
-			})
+			httpx.WriteError(c, err)
 			return
 		}
 
 		var monitor dto.CreateMonitorDto
 
-		if err := c.ShouldBindJSON(&monitor); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+		if err := httpx.BindJSON(c, &monitor); err != nil {
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -114,7 +99,7 @@ func (ctl *MonitorController) UpdateMonitorController() gin.HandlerFunc {
 // @Tags         monitors
 // @Produce      json
 // @Success      200  {object}  map[string]interface{}  "Monitores encontrados com sucesso"
-// @Failure      500  {object}  map[string]string  "Erro interno do servidor"
+// @Failure      500  {object}  exception.ErrorResponse  "Erro interno do servidor"
 // @Router       /monitors [get]
 func (ctl *MonitorController) GetAllMonitorsController() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -139,25 +124,14 @@ func (ctl *MonitorController) GetAllMonitorsController() gin.HandlerFunc {
 // @Produce      json
 // @Param        id  query  uint64  true  "ID do monitor"
 // @Success      200  {object}  map[string]interface{}  "Monitor encontrado com sucesso"
-// @Failure      400  {object}  map[string]string  "ID inválido ou não informado"
-// @Failure      404  {object}  map[string]string  "Monitor não encontrado"
+// @Failure      400  {object}  exception.ErrorResponse  "ID inválido ou não informado"
+// @Failure      404  {object}  exception.ErrorResponse  "Monitor não encontrado"
 // @Router       /monitors/id [get]
 func (ctl *MonitorController) FindByIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "query param 'id' is required",
-			})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "invalid 'id' value",
-			})
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -182,25 +156,14 @@ func (ctl *MonitorController) FindByIDController() gin.HandlerFunc {
 // @Produce      json
 // @Param        employee_id  query  uint64  true  "ID do funcionário"
 // @Success      200  {object}  map[string]interface{}  "Monitores encontrados com sucesso"
-// @Failure      400  {object}  map[string]string  "ID do funcionário inválido ou não informado"
-// @Failure      404  {object}  map[string]string  "Nenhum monitor encontrado para o funcionário"
+// @Failure      400  {object}  exception.ErrorResponse  "ID do funcionário inválido ou não informado"
+// @Failure      404  {object}  exception.ErrorResponse  "Nenhum monitor encontrado para o funcionário"
 // @Router       /monitors/employee_id [get]
 func (ctl *MonitorController) FindByEmployeeIDController() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		employeeIDParam := c.Query("employee_id")
-
-		if employeeIDParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "query param 'employee_id' is required",
-			})
-			return
-		}
-
-		employeeID, err := httpx.ParseID(employeeIDParam)
+		employeeID, err := httpx.QueryID(c, "employee_id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "invalid 'employee_id' value",
-			})
+			httpx.WriteError(c, err)
 			return
 		}
 

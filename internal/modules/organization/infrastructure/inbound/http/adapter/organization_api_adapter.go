@@ -25,7 +25,7 @@ func NewUtilsController(utilsUseCase *usecase.UtilsUseCase) *UtilsController {
 // @Tags branches
 // @Produce json
 // @Success 200 {object} map[string]interface{} "Filias encontrados com sucesso"
-// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Failure 500 {object} exception.ErrorResponse "Erro interno do servidor"
 // @Router /utils/branches [get]
 func (ctl *UtilsController) GetAllBranchs() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -49,21 +49,13 @@ func (ctl *UtilsController) GetAllBranchs() gin.HandlerFunc {
 // @Produce json
 // @Param id query uint64 true "ID da branch"
 // @Success 200 {object} map[string]interface{} "Branch encontrada com sucesso"
-// @Failure 404 {object} map[string]string "Branch não encontrada"
+// @Failure 404 {object} exception.ErrorResponse "Branch não encontrada"
 // @Router /utils/branch [get]
 func (uc *UtilsController) BranchIdToDescription() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "id is required",
-			})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 
@@ -88,7 +80,7 @@ func (uc *UtilsController) BranchIdToDescription() gin.HandlerFunc {
 // @Tags departments
 // @Produce json
 // @Success 200 {object} map[string]interface{} "Setores encontrados com sucesso"
-// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Failure 500 {object} exception.ErrorResponse "Erro interno do servidor"
 // @Router /utils/departments [get]
 func (ctl *UtilsController) GetAllDepartments() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -112,21 +104,13 @@ func (ctl *UtilsController) GetAllDepartments() gin.HandlerFunc {
 // @Produce json
 // @Param id query uint64 true "ID do department"
 // @Success 200 {object} map[string]interface{} "Department encontrada com sucesso"
-// @Failure 404 {object} map[string]string "Department não encontrada"
+// @Failure 404 {object} exception.ErrorResponse "Department não encontrada"
 // @Router /utils/department [get]
 func (uc *UtilsController) DepartmentIdToDescription() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Query("id")
-		if idParam == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "id is required",
-			})
-			return
-		}
-
-		id, err := httpx.ParseID(idParam)
+		id, err := httpx.QueryID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid 'id' value"})
+			httpx.WriteError(c, err)
 			return
 		}
 

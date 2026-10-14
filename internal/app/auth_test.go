@@ -163,3 +163,16 @@ func TestAllInventoryRoutesRequireAuthentication(t *testing.T) {
 		t.Fatal(response.Code)
 	}
 }
+
+func TestUnknownRoutesUseErrorEnvelope(t *testing.T) {
+	client, err := mongo.Connect(options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = client.Disconnect(context.Background()) }()
+	response := httptest.NewRecorder()
+	testRouter(t, client.Database("unused")).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/unknown", nil))
+	if response.Code != http.StatusNotFound || response.Body.String() != `{"message":"Cannot GET /api/unknown","code":"CORE_002","logs":{}}` {
+		t.Fatalf("%d %s", response.Code, response.Body.String())
+	}
+}

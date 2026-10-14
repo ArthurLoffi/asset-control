@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"asset-control/internal/core/exception"
+	"asset-control/internal/core/httpx"
 	"net/http"
 	"sync"
 	"time"
@@ -42,7 +44,7 @@ func RateLimit() gin.HandlerFunc {
 		isAllowed := current.limiter.Allow()
 		mu.Unlock()
 		if !isAllowed {
-			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "Too many requests. Try again later."})
+			httpx.WriteError(c, exception.NewHTTPError(http.StatusTooManyRequests, "Too many requests. Try again later."))
 			return
 		}
 		c.Next()
