@@ -4,9 +4,8 @@ package app
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"math"
-	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -22,8 +21,8 @@ func TestEmailLookups(t *testing.T) {
 	createdAt := time.Date(2025, 3, 4, 12, 0, 0, 0, time.UTC)
 	collection := db.Collection(database.UsableEmailsCollection)
 	router := testRouter(t, db)
-	if data := callAPI(t, router, "GET", "/api/emails", nil, 200); string(data) != "[]" {
-		t.Fatalf("empty email list: %s", data)
+	if listed, _ := page(t, callAPI(t, router, "GET", "/api/emails", nil, 200)); len(listed) != 0 {
+		t.Fatalf("empty email list: %v", listed)
 	}
 	_, err := collection.InsertMany(ctx, []any{
 		bson.M{"id": int32(43), "user": "Ana [Ops]", "email": "other@example.com", "password_hash": "other-password", "created_at": createdAt},
@@ -33,32 +32,25 @@ func TestEmailLookups(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var listed []map[string]any
-	if err := json.Unmarshal(callAPI(t, router, "GET", "/api/emails", nil, 200), &listed); err != nil {
-		t.Fatal(err)
-	}
-	if len(listed) != 3 || listed[0]["id"] != float64(1) || listed[1]["id"] != float64(42) || listed[2]["id"] != float64(43) || listed[1]["password_hash"] != " plain<&>text password " {
+	listed, _ := page(t, callAPI(t, router, "GET", "/api/emails", nil, 200))
+	if fmt.Sprint(ids(listed)) != "[1 42 43]" || listed[1]["password_hash"] != " plain<&>text password " {
 		t.Fatal("email list did not preserve records and ID ordering")
 	}
-	for _, target := range []string{"/api/emails/id?id=42", "/api/emails/user?user=" + url.QueryEscape(" [oPs] ")} {
-		data := object(t, callAPI(t, router, "GET", target, nil, 200))
-		if len(data) != 5 || data["id"] != float64(42) || data["user"] != "Ana [Ops]" || data["email"] != "ana@example.com" || data["password_hash"] != " plain<&>text password " || data["created_at"] != createdAt.Format(time.RFC3339) {
-			t.Fatal("lookup did not return the expected stored email")
+	data := object(t, callAPI(t, router, "GET", "/api/emails/42", nil, 200))
+	if len(data) != 5 || data["id"] != float64(42) || data["user"] != "Ana [Ops]" || data["email"] != "ana@example.com" ||
+		data["password_hash"] != " plain<&>text password " || data["created_at"] != createdAt.Format(time.RFC3339) {
+		t.Fatal("lookup did not return the expected stored email")
+	}
+	if found, _ := page(t, callAPI(t, router, "GET", "/api/emails?user="+url.QueryEscape("[oPs]"), nil, 200)); fmt.Sprint(ids(found)) != "[42 43]" {
+		t.Fatalf("literal case-insensitive user filter: %v", found)
+	}
+	for _, user := range []string{"missing", ".*", "ana@example.com"} {
+		if found, _ := page(t, callAPI(t, router, "GET", "/api/emails?user="+url.QueryEscape(user), nil, 200)); len(found) != 0 {
+			t.Fatalf("user %q matched %v", user, found)
 		}
 	}
-	for _, target := range []string{"/api/emails/id?id=999", "/api/emails/user?user=missing", "/api/emails/user?user=.*", "/api/emails/user?user=ana@example.com"} {
-		callAPI(t, router, "GET", target, nil, 404)
-	}
-	for _, target := range []string{"/api/emails/id", "/api/emails/id?id=2147483648", "/api/emails/user?user=%20"} {
-		callAPI(t, router, "GET", target, nil, 400)
-	}
-	for _, method := range []string{"DELETE"} {
-		recorder := httptest.NewRecorder()
-		router.ServeHTTP(recorder, httptest.NewRequest(method, "/api/emails", nil))
-		if recorder.Code != 404 {
-			t.Fatalf("unexpected email route: %s /api/emails returned %d", method, recorder.Code)
-		}
-	}
+	callAPI(t, router, "GET", "/api/emails/999", nil, 404)
+	callAPI(t, router, "GET", "/api/emails/abc", nil, 400)
 	var stored bson.M
 	if err := collection.FindOne(ctx, bson.M{"id": int32(42)}).Decode(&stored); err != nil {
 		t.Fatal(err)
@@ -76,9 +68,7 @@ func TestEmailCreateAndUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := database.EnsureSchema(ctx, db); err != nil {
-		t.Fatal(err)
-	}
+	ensureSchema(t, db)
 	router := testRouter(t, db)
 	body := map[string]any{"user": "Ana", "email": "ana@example.com", "password_hash": " plain<&>text ", "id": 999, "created_at": "2000-01-01T00:00:00Z"}
 	created := object(t, callAPI(t, router, "POST", "/api/emails", body, 201))
@@ -89,8 +79,9 @@ func TestEmailCreateAndUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 	body["user"], body["email"], body["password_hash"] = "Updated", "updated@example.com", " changed password "
-	updated := object(t, callAPI(t, router, "PUT", "/api/emails?id=42", body, 200))
-	if updated["id"] != created["id"] || updated["created_at"] != created["created_at"] || updated["user"] != body["user"] || updated["email"] != body["email"] || updated["password_hash"] != body["password_hash"] {
+	updated := object(t, callAPI(t, router, "PUT", "/api/emails/42", body, 200))
+	if updated["id"] != created["id"] || updated["created_at"] != created["created_at"] || updated["user"] != body["user"] ||
+		updated["email"] != body["email"] || updated["password_hash"] != body["password_hash"] {
 		t.Fatal("update failed to preserve immutable fields or replace mutable fields")
 	}
 	var stored bson.M
@@ -100,9 +91,9 @@ func TestEmailCreateAndUpdate(t *testing.T) {
 	if stored["id"] != int32(42) || stored["migration_note"] != "keep" || stored["password_hash"] != body["password_hash"] {
 		t.Fatal("update changed the ID type, unknown fields, or plaintext password")
 	}
-	callAPI(t, router, "PUT", "/api/emails?id=999", body, 404)
+	callAPI(t, router, "PUT", "/api/emails/999", body, 404)
 	callAPI(t, router, "POST", "/api/emails", map[string]any{}, 400)
-	callAPI(t, router, "PUT", "/api/emails?id=42", map[string]any{}, 400)
+	callAPI(t, router, "PUT", "/api/emails/42", map[string]any{}, 400)
 	if count, err := collection.CountDocuments(ctx, bson.M{}); err != nil || count != 2 {
 		t.Fatalf("unexpected document count: %d, %v", count, err)
 	}

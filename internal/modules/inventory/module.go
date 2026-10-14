@@ -1,69 +1,46 @@
 package inventory
 
 import (
+	"context"
+
 	"asset-control/internal/core/audit"
-	"asset-control/internal/modules/inventory/application/usecase"
+	"asset-control/internal/core/database"
+	"asset-control/internal/core/resource"
 	inventoryapi "asset-control/internal/modules/inventory/infrastructure/inbound/http/adapter"
 	inventorydata "asset-control/internal/modules/inventory/infrastructure/outbound/data/adapter"
+	"asset-control/internal/modules/inventory/infrastructure/outbound/data/schema"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+// Register wires each entity's data adapter, use cases, and HTTP adapter.
+// Resource names are the singular values stored in audit records.
 func Register(router gin.IRouter, db *mongo.Database, recorder audit.Recorder) {
-	employeeController := inventoryapi.NewEmployeeController(usecase.NewEmployeeUseCase(inventorydata.NewEmployeeRepository(db), recorder))
-	machineController := inventoryapi.NewMachineController(usecase.NewMachineUseCase(inventorydata.NewMachineRepository(db), recorder))
-	phoneController := inventoryapi.NewPhoneController(usecase.NewPhoneUseCase(inventorydata.NewPhoneRepository(db), recorder))
-	monitorController := inventoryapi.NewMonitorController(usecase.NewMonitorUseCase(inventorydata.NewMonitorRepository(db), recorder))
-	printerController := inventoryapi.NewPrinterController(usecase.NewPrinterUseCase(inventorydata.NewPrinterRepository(db), recorder))
-	emailController := inventoryapi.NewEmailController(usecase.NewEmailUseCase(inventorydata.NewEmailRepository(db), recorder))
-	deactivationController := inventoryapi.NewDeactivationController(usecase.NewDeactivationUseCase(inventorydata.NewDeactivationRepository(db)))
+	inventoryapi.NewEmployeeAPIAdapter(resource.NewUseCases("employee", inventorydata.NewEmployeeDataAdapter(db), recorder)).RegisterRoutes(router)
+	inventoryapi.NewMachineAPIAdapter(resource.NewUseCases("machine", inventorydata.NewMachineDataAdapter(db), recorder)).RegisterRoutes(router)
+	inventoryapi.NewMonitorAPIAdapter(resource.NewUseCases("monitor", inventorydata.NewMonitorDataAdapter(db), recorder)).RegisterRoutes(router)
+	inventoryapi.NewPhoneAPIAdapter(resource.NewUseCases("phone", inventorydata.NewPhoneDataAdapter(db), recorder)).RegisterRoutes(router)
+	inventoryapi.NewPrinterAPIAdapter(resource.NewUseCases("printer", inventorydata.NewPrinterDataAdapter(db), recorder)).RegisterRoutes(router)
+	inventoryapi.NewEmailAPIAdapter(resource.NewUseCases("email", inventorydata.NewEmailDataAdapter(db), recorder)).RegisterRoutes(router)
+}
 
-	for _, resource := range []string{"employees", "machines", "phones", "monitors", "printers", "emails"} {
-		router.POST("/"+resource+"/deactivate", deactivationController.Deactivate(resource))
-		router.GET("/"+resource+"/inactive", deactivationController.ListInactive(resource))
+// EnsureSchema creates indexes and seeds the id counters; run before accepting writes.
+func EnsureSchema(ctx context.Context, db *mongo.Database) error {
+	assignmentIndexes := []mongo.IndexModel{
+		{Keys: bson.D{{Key: "employee_id", Value: 1}, {Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}},
+		{Keys: bson.D{{Key: "employee_ids", Value: 1}, {Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}},
 	}
-
-	emails := router.Group("/emails")
-	emails.GET("", emailController.GetAllEmailsController())
-	emails.POST("", emailController.CreateEmailController())
-	emails.PUT("", emailController.UpdateEmailController())
-	emails.GET("/id", emailController.FindByIDController())
-	emails.GET("/user", emailController.FindByUserController())
-
-	employees := router.Group("/employees")
-	employees.POST("", employeeController.CreateEmployeeController())
-	employees.GET("/id", employeeController.FindByIDController())
-	employees.GET("/name", employeeController.FindByNameController())
-	employees.GET("", employeeController.GetAllEmployeesController())
-	employees.PUT("", employeeController.UpdateEmployeeController())
-
-	machines := router.Group("/machines")
-	machines.POST("", machineController.CreateMachineController())
-	machines.GET("/id", machineController.FindByIDController())
-	machines.GET("/employee_id", machineController.FindByEmployeeIDController())
-	machines.GET("/unassigned", machineController.GetUnassignedMachinesController())
-	machines.GET("", machineController.GetAllMachinesController())
-	machines.PUT("", machineController.UpdateMachineController())
-
-	phones := router.Group("/phones")
-	phones.POST("", phoneController.CreatePhoneController())
-	phones.GET("/id", phoneController.FindByIDController())
-	phones.GET("/employee_id", phoneController.FindByEmployeeIDController())
-	phones.GET("", phoneController.GetAllPhonesController())
-	phones.PUT("", phoneController.UpdatePhoneController())
-
-	monitors := router.Group("/monitors")
-	monitors.POST("", monitorController.CreateMonitorController())
-	monitors.GET("/id", monitorController.FindByIDController())
-	monitors.GET("/employee_id", monitorController.FindByEmployeeIDController())
-	monitors.GET("/unassigned", monitorController.GetUnassignedMonitorsController())
-	monitors.GET("", monitorController.GetAllMonitorsController())
-	monitors.PUT("", monitorController.UpdateMonitorController())
-
-	printers := router.Group("/printers")
-	printers.POST("", printerController.CreatePrinterController())
-	printers.GET("/id", printerController.FindByIDController())
-	printers.GET("", printerController.GetAllPrintersController())
-	printers.PUT("", printerController.UpdatePrinterController())
+	for _, name := range []string{schema.EmployeeCollection, schema.PrinterCollection, schema.EmailCollection} {
+		if err := database.EnsureResource(ctx, db, name); err != nil {
+			return err
+		}
+	}
+	for _, name := range []string{schema.MachineCollection, schema.MonitorCollection, schema.PhoneCollection} {
+		if err := database.EnsureResource(ctx, db, name, assignmentIndexes...); err != nil {
+			return err
+		}
+	}
+	return nil
 }

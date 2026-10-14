@@ -51,7 +51,7 @@ func TestChangedFieldsShowsValuesWithoutSecretsOrMetadata(t *testing.T) {
 		"details": bson.M{"nested": "after"},
 	}
 	got := changedFields(before, after)
-	want := []dto.ChangedFieldDto{
+	want := []dto.ChangedFieldDTO{
 		{Field: "employee_id", Before: "", After: "7"},
 		{Field: "model", Before: "Old", After: "New"},
 	}

@@ -71,7 +71,7 @@ func run() error {
 	}
 	schemaCtx, cancel := context.WithTimeout(ctx, databaseConfig.Timeout)
 	defer cancel()
-	if err := database.EnsureSchema(schemaCtx, db); err != nil {
+	if err := app.EnsureSchema(schemaCtx, db); err != nil {
 		return err
 	}
 	if err := authModule.EnsureSchema(schemaCtx); err != nil {

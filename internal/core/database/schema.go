@@ -13,50 +13,46 @@ import (
 const CountersCollection = "_counters"
 const UsableEmailsCollection = "usableEmails"
 
-// EnsureSchema preserves imported numeric IDs. $max never moves a counter
-// backwards, including when multiple application instances start together.
-// Run before accepting writes; duplicate imported IDs fail startup.
-func EnsureSchema(ctx context.Context, db *mongo.Database) error {
-	if _, err := db.Collection("changes").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.D{{Key: "time", Value: -1}, {Key: "_id", Value: -1}},
-	}); err != nil {
-		return fmt.Errorf("create indexes for changes: %w", err)
+func EnsureIndexes(ctx context.Context, db *mongo.Database, name string, indexes ...mongo.IndexModel) error {
+	if _, err := db.Collection(name).Indexes().CreateMany(ctx, indexes); err != nil {
+		return fmt.Errorf("create indexes for %s: %w", name, err)
 	}
-	for _, name := range []string{"employees", "machines", "monitors", "phones", "printers", "branches", "departments", UsableEmailsCollection} {
-		collection := db.Collection(name)
-		indexes := []mongo.IndexModel{{Keys: bson.D{{Key: "id", Value: 1}}, Options: options.Index().SetUnique(true)}}
-		if name != "branches" && name != "departments" {
-			indexes = append(indexes,
-				mongo.IndexModel{Keys: bson.D{{Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}},
-				mongo.IndexModel{Keys: bson.D{{Key: "id", Value: 1}}, Options: options.Index().SetName("inactive_by_id").SetPartialFilterExpression(bson.M{"deactivated_at": bson.M{"$type": "date"}})},
-			)
-		}
-		if name == "machines" || name == "monitors" || name == "phones" {
-			indexes = append(indexes, mongo.IndexModel{Keys: bson.D{{Key: "employee_id", Value: 1}}})
-			indexes = append(indexes, mongo.IndexModel{Keys: bson.D{{Key: "employee_id", Value: 1}, {Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}})
-			indexes = append(indexes, mongo.IndexModel{Keys: bson.D{{Key: "employee_ids", Value: 1}, {Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}})
-		}
-		if _, err := collection.Indexes().CreateMany(ctx, indexes); err != nil {
-			return fmt.Errorf("create indexes for %s: %w", name, err)
-		}
-		if name == "branches" || name == "departments" {
-			continue
-		}
-		var last struct {
-			ID int64 `bson:"id"`
-		}
-		err := collection.FindOne(ctx, bson.D{}, options.FindOne().SetSort(bson.D{{Key: "id", Value: -1}}).SetProjection(bson.M{"id": 1})).Decode(&last)
-		if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-			return fmt.Errorf("read last ID for %s: %w", name, err)
-		}
-		_, err = db.Collection(CountersCollection).UpdateOne(ctx, bson.M{"_id": name}, bson.M{"$max": bson.M{"seq": last.ID}}, options.UpdateOne().SetUpsert(true))
-		// Concurrent first-time upserts can race on the built-in _id index.
-		if mongo.IsDuplicateKeyError(err) {
-			_, err = db.Collection(CountersCollection).UpdateOne(ctx, bson.M{"_id": name}, bson.M{"$max": bson.M{"seq": last.ID}})
-		}
-		if err != nil {
-			return fmt.Errorf("initialize IDs for %s: %w", name, err)
-		}
+	return nil
+}
+
+// EnsureLookup prepares a read-only reference collection keyed by a unique id.
+func EnsureLookup(ctx context.Context, db *mongo.Database, name string) error {
+	return EnsureIndexes(ctx, db, name, mongo.IndexModel{Keys: bson.D{{Key: "id", Value: 1}}, Options: options.Index().SetUnique(true)})
+}
+
+// EnsureResource prepares a Collection: unique id, active and inactive list
+// indexes, and the id counter. It preserves imported numeric IDs: $max never
+// moves a counter backwards, including when several instances start together.
+// Run before accepting writes; duplicate imported IDs fail startup.
+func EnsureResource(ctx context.Context, db *mongo.Database, name string, extraIndexes ...mongo.IndexModel) error {
+	indexes := append([]mongo.IndexModel{
+		{Keys: bson.D{{Key: "id", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "deactivated_at", Value: 1}, {Key: "id", Value: 1}}},
+		{Keys: bson.D{{Key: "id", Value: 1}}, Options: options.Index().SetName("inactive_by_id").SetPartialFilterExpression(bson.M{"deactivated_at": bson.M{"$type": "date"}})},
+	}, extraIndexes...)
+	if err := EnsureIndexes(ctx, db, name, indexes...); err != nil {
+		return err
+	}
+	var last struct {
+		ID int64 `bson:"id"`
+	}
+	err := db.Collection(name).FindOne(ctx, bson.D{}, options.FindOne().SetSort(bson.D{{Key: "id", Value: -1}}).SetProjection(bson.M{"id": 1})).Decode(&last)
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return fmt.Errorf("read last ID for %s: %w", name, err)
+	}
+	counters := db.Collection(CountersCollection)
+	_, err = counters.UpdateOne(ctx, bson.M{"_id": name}, bson.M{"$max": bson.M{"seq": last.ID}}, options.UpdateOne().SetUpsert(true))
+	// Concurrent first-time upserts can race on the built-in _id index.
+	if mongo.IsDuplicateKeyError(err) {
+		_, err = counters.UpdateOne(ctx, bson.M{"_id": name}, bson.M{"$max": bson.M{"seq": last.ID}})
+	}
+	if err != nil {
+		return fmt.Errorf("initialize IDs for %s: %w", name, err)
 	}
 	return nil
 }

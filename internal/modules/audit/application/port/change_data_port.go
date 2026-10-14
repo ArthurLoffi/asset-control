@@ -3,9 +3,11 @@ package port
 import (
 	"context"
 
+	coredto "asset-control/internal/core/dto"
 	"asset-control/internal/modules/audit/domain/dto"
 )
 
-type RecentChangePort interface {
-	ListRecent(ctx context.Context, limit int64) ([]dto.RecentChangeDto, error)
+// ChangeDataPort is implemented by infrastructure/outbound/data/adapter.
+type ChangeDataPort interface {
+	FindAll(ctx context.Context, request dto.ChangeRequestDTO) (coredto.PaginatedResponseDTO[dto.ChangeResponseDTO], error)
 }

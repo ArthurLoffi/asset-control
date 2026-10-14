@@ -2,6 +2,8 @@
 package app
 
 import (
+	"context"
+
 	"asset-control/internal/core/httpx"
 	"asset-control/internal/core/httpx/middleware"
 	"asset-control/internal/modules/audit"
@@ -47,4 +49,14 @@ func configureClientIP(router *gin.Engine) error {
 	// Only a local peer may supply it; direct clients cannot spoof forwarded IPs.
 	router.RemoteIPHeaders = []string{gin.PlatformCloudflare}
 	return router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+}
+
+// EnsureSchema creates every module's indexes and id counters before writes.
+func EnsureSchema(ctx context.Context, db *mongo.Database) error {
+	for _, ensure := range []func(context.Context, *mongo.Database) error{audit.EnsureSchema, inventory.EnsureSchema, organization.EnsureSchema} {
+		if err := ensure(ctx, db); err != nil {
+			return err
+		}
+	}
+	return nil
 }

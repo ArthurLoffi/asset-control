@@ -1,20 +1,28 @@
 package organization
 
 import (
-	"asset-control/internal/modules/organization/application/usecase"
+	"context"
+
+	"asset-control/internal/core/database"
+	"asset-control/internal/core/resource"
 	organizationapi "asset-control/internal/modules/organization/infrastructure/inbound/http/adapter"
 	organizationdata "asset-control/internal/modules/organization/infrastructure/outbound/data/adapter"
+	"asset-control/internal/modules/organization/infrastructure/outbound/data/schema"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func Register(router gin.IRouter, db *mongo.Database) {
-	utilsController := organizationapi.NewUtilsController(usecase.NewUtilsUseCase(organizationdata.NewUtilsRepository(db)))
+	organizationapi.NewBranchAPIAdapter(resource.NewReadUseCases("branch", organizationdata.NewBranchDataAdapter(db))).RegisterRoutes(router)
+	organizationapi.NewDepartmentAPIAdapter(resource.NewReadUseCases("department", organizationdata.NewDepartmentDataAdapter(db))).RegisterRoutes(router)
+}
 
-	utils := router.Group("/utils")
-	utils.GET("/branches", utilsController.GetAllBranchs())
-	utils.GET("/branch", utilsController.BranchIdToDescription())
-	utils.GET("/departments", utilsController.GetAllDepartments())
-	utils.GET("/department", utilsController.DepartmentIdToDescription())
+func EnsureSchema(ctx context.Context, db *mongo.Database) error {
+	for _, name := range []string{schema.BranchCollection, schema.DepartmentCollection} {
+		if err := database.EnsureLookup(ctx, db, name); err != nil {
+			return err
+		}
+	}
+	return nil
 }

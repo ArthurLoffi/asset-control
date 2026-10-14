@@ -26,8 +26,13 @@ go to `core` as interfaces and the owning module registers the implementation
 (for example `audit.Register` returns the `core/audit.Recorder`). File names use
 snake_case; tests sit next to the tested file.
 
-Preserve existing inventory routes, response envelopes, IDs, validation, and
-BSON mappings. Keep database queries cancellable.
+Shared behavior lives in `internal/core`: `resource` (generic ports and one
+use case per action with `Execute`), `database` (`Collection`, `ResourceAdapter`,
+`FindPage`), and `httpx` (`List`, `Get`, `Create`, `Update`, `WriteError`).
+An entity declares only DTOs, schema, mapper, a data adapter config, an API
+adapter, and one line in `module.go`. Preserve IDs, validation, and BSON
+mappings; follow `docs/listing.md` for every GET list. Keep database queries
+cancellable.
 
 ## Authentication
 
@@ -70,6 +75,8 @@ changes:
   deactivation, inactive history, unassigned lists.
 - [docs/audit-history.md](docs/audit-history.md): audit records and the recent
   changes feed.
+- [docs/listing.md](docs/listing.md): REST routes, pagination, sorting, and
+  filters of every resource.
 - [docs/errors.md](docs/errors.md): the `{message, code, logs}` envelope and
   error codes. Report every handler failure through `httpx.WriteError`.
 

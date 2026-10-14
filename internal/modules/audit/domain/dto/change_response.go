@@ -2,14 +2,14 @@ package dto
 
 import "time"
 
-// RecentChangeDto omits audit snapshots from the dashboard feed.
-type ChangedFieldDto struct {
+type ChangedFieldDTO struct {
 	Field  string `json:"field"`
 	Before string `json:"before"`
 	After  string `json:"after"`
 }
 
-type RecentChangeDto struct {
+// ChangeResponseDTO omits audit snapshots; only changed scalar fields leave.
+type ChangeResponseDTO struct {
 	ID            string            `json:"id"`
 	Time          time.Time         `json:"time"`
 	UserID        string            `json:"user_id"`
@@ -17,10 +17,5 @@ type RecentChangeDto struct {
 	Resource      string            `json:"resource"`
 	ResourceID    int64             `json:"resource_id"`
 	Action        string            `json:"action"`
-	ChangedFields []ChangedFieldDto `json:"changed_fields"`
-}
-
-type RecentChangesResponseDto struct {
-	Status string            `json:"status"`
-	Data   []RecentChangeDto `json:"data"`
+	ChangedFields []ChangedFieldDTO `json:"changed_fields"`
 }
