@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	auth "github.com/Brasil-Novo/asset-control-auth"
+	auth "github.com/ArthurLoffi/asset-control-auth"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"

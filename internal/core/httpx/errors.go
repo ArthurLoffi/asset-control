@@ -10,7 +10,7 @@ import (
 
 	"asset-control/internal/core/exception"
 
-	auth "github.com/Brasil-Novo/asset-control-auth"
+	auth "github.com/ArthurLoffi/asset-control-auth"
 	"github.com/gin-gonic/gin"
 )
 

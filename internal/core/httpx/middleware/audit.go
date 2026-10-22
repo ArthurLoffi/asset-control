@@ -3,7 +3,7 @@ package middleware
 import (
 	"asset-control/internal/core/audit"
 
-	auth "github.com/Brasil-Novo/asset-control-auth"
+	auth "github.com/ArthurLoffi/asset-control-auth"
 	"github.com/gin-gonic/gin"
 )
 

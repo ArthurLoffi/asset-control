@@ -15,7 +15,7 @@ import (
 	"asset-control/internal/core/database"
 	"asset-control/internal/core/httpx/middleware"
 
-	auth "github.com/Brasil-Novo/asset-control-auth"
+	auth "github.com/ArthurLoffi/asset-control-auth"
 )
 
 // @title           Asset control API

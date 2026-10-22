@@ -3,7 +3,7 @@ module asset-control
 go 1.26.5
 
 require (
-	github.com/Brasil-Novo/asset-control-auth v0.2.0
+	github.com/ArthurLoffi/asset-control-auth v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/joho/godotenv v1.5.1
@@ -67,4 +67,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/Brasil-Novo/asset-control-auth => ../asset-control-auth
+replace github.com/ArthurLoffi/asset-control-auth => ../asset-control-auth

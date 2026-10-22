@@ -12,7 +12,7 @@ import (
 
 	_ "asset-control/internal/app/swagger"
 
-	auth "github.com/Brasil-Novo/asset-control-auth"
+	auth "github.com/ArthurLoffi/asset-control-auth"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"

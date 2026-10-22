@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	auth "github.com/Brasil-Novo/asset-control-auth"
+	auth "github.com/ArthurLoffi/asset-control-auth"
 	"github.com/gin-gonic/gin"
 )
 

@@ -17,6 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- The auth library is imported as `github.com/ArthurLoffi/asset-control-auth`
+  (moved from `Brasil-Novo`) and still resolved from the sibling
+  `../asset-control-auth` through a `replace` directive.
 - REST routes: `GET|PUT|DELETE /api/<resources>/{id}` replace `?id=` queries;
   `DELETE` replaces `POST /deactivate`; `GET /api/branches[/{id}]` and
   `/api/departments[/{id}]` replace `/api/utils/*`; `GET /api/changes` replaces
